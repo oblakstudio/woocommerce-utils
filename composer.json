@@ -1,0 +1,41 @@
+{
+    "name": "oblak/woocommerce-utils",
+    "description": "This module contains various utilities for WooCommerce.",
+    "authors": [
+      {
+          "name": "Sibin Grasic",
+          "email": "sibin.grasic@oblak.studio"
+      }
+    ],
+    "license": "MIT",
+    "version": "1.0.0",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Oblak\\WooCommerce\\": "src"
+        }
+    },
+    "require": {
+      "php" : ">= 8.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "3.*",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
+        "wp-coding-standards/wpcs": "*",
+        "phpcompatibility/phpcompatibility-wp": "*",
+        "woocommerce/woocommerce-sniffs": "^0.1.2"
+    },
+    "scripts": {
+        "install-codestandards": [
+            "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+        ],
+        "post-install-cmd": [
+            "@install-codestandards"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
