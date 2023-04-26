@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.0.1...v1.0.2) (2023-04-26)
+
+
+### Bug Fixes
+
+* Fixed query vars variable ([2f164b2](https://github.com/oblakstudio/woocommerce-utils/commit/2f164b24863f8c1763414ba51d436a66f6766b34))
+
 ## [1.0.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.0.0...v1.0.1) (2023-04-26)
 
 
