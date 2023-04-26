@@ -49,7 +49,7 @@ abstract class Custom_Query_Vars {
     public function add_product_query_vars( $query_vars ) {
         $request_arr = wc_clean( wp_unslash( $_REQUEST ) );
 
-        foreach ( self::$vars as $var ) {
+        foreach ( $this->vars as $var ) {
             if ( ! empty( $request_arr[ $var ] ) ) {
                 $query_vars[ $var ] = $request_arr[ $var ];
             }
@@ -69,7 +69,7 @@ abstract class Custom_Query_Vars {
 
         static $relation_added = false;
 
-        foreach ( self::$vars as $var ) {
+        foreach ( $this->vars as $var ) {
             if ( empty( $query_vars[ $var ] ) ) {
                 continue;
             }

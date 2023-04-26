@@ -8,7 +8,7 @@
       }
     ],
     "license": "MIT",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "type": "library",
     "autoload": {
         "psr-4": {
@@ -27,7 +27,7 @@
     },
     "scripts": {
         "install-codestandards": [
-            "PHPCSStandards\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+            "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
         ],
         "post-install-cmd": [
             "@install-codestandards"
