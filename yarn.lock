@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 7
+  version: 8
   cacheKey: 9
 
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.21.4":
