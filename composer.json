@@ -2,10 +2,10 @@
     "name": "oblak/woocommerce-utils",
     "description": "This module contains various utilities for WooCommerce.",
     "authors": [
-      {
-          "name": "Sibin Grasic",
-          "email": "sibin.grasic@oblak.studio"
-      }
+        {
+            "name": "Sibin Grasic",
+            "email": "sibin.grasic@oblak.studio"
+        }
     ],
     "license": "MIT",
     "version": "1.0.2",
@@ -16,7 +16,7 @@
         }
     },
     "require": {
-      "php" : ">= 8.0"
+        "php": ">= 8.0"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "3.*",

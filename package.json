@@ -2,12 +2,12 @@
   "scripts": {
     "release": "semantic-release"
   },
-  "packageManager": "yarn@4.0.0-rc.42",
+  "packageManager": "yarn@3.6.1",
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^8.0.7",
-    "semantic-release": "^21.0.1"
+    "@semantic-release/github": "^9.0.4",
+    "semantic-release": "^21.0.7"
   }
 }
