@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.2.0...v1.3.0) (2023-07-22)
+
+
+### Bug Fixes
+
+* Fixed tab suffix name ([f61c9e4](https://github.com/oblakstudio/woocommerce-utils/commit/f61c9e466aa816e93acf07255c24e77e77b3c323))
+
+
+### Features
+
+* Implemented tab icons and proper suffixing ([0b6a428](https://github.com/oblakstudio/woocommerce-utils/commit/0b6a42808e23e412a8ac2f9d3766166a20fcf727))
+
 # [1.2.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.1.0...v1.2.0) (2023-07-22)
 
 
