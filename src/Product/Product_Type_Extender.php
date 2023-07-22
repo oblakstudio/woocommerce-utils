@@ -52,9 +52,21 @@ abstract class Product_Type_Extender {
         add_filter( 'woocommerce_product_data_tabs', array( $this, 'add_product_type_data_tabs' ), 999, 1 );
         add_filter( 'woocommerce_product_data_panels', array( $this, 'add_product_type_data_panels' ), 999 );
         add_action( 'woocommerce_admin_process_product_object', array( $this, 'set_custom_options_status' ), 99, 1 );
+        add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
         add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
         add_action( 'admin_footer', array( $this, 'add_custom_product_options_js' ), 99, 1 );
 
+    }
+
+    /**
+     * Checks if we're on the product edit page
+     *
+     * @return bool
+     */
+    private function is_product_edit_page() {
+        global $pagenow, $typenow;
+
+        return in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' === $typenow;
     }
 
     /**
@@ -131,18 +143,6 @@ abstract class Product_Type_Extender {
     }
 
     /**
-     * Get the tab suffix.
-     *
-     * Basically strips the -options from the slug.
-     *
-     * @param  string $tab_label The tab label.
-     * @return string            The tab suffix.
-     */
-    private function get_tab_suffix( $tab_label ) {
-        return str_replace( '-options', '', sanitize_title( $tab_label ) );
-    }
-
-    /**
      * Add product type data tabs
      *
      * @param  array $tabs Product data tabs.
@@ -153,10 +153,10 @@ abstract class Product_Type_Extender {
             $type_tabs = $type['tabs'] ?? array();
 
             foreach ( $type_tabs as $tab_to_add ) {
-                $tab_suffix    = $this->get_tab_suffix( $tab_to_add['label'] );
-                $tabs[ $slug ] = array(
+                $tab_id          = "{$slug}_{$tab_to_add['id']}";
+                $tabs[ $tab_id ] = array(
                     'label'    => $tab_to_add['label'],
-                    'target'   => "{$slug}-{$tab_suffix}-options",
+                    'target'   => "{$tab_id}-options",
                     'class'    => "show_if_{$slug}",
                     'priority' => $tab_to_add['priority'],
                 );
@@ -173,9 +173,9 @@ abstract class Product_Type_Extender {
         foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
             $type_tabs = $type['tabs'] ?? array();
             foreach ( $type_tabs as $tab_to_add ) {
-                $tab_suffix = $this->get_tab_suffix( $tab_to_add['label'] );
+                $tab_id = "{$slug}_{$tab_to_add['id']}";
                 ?>
-                <div id="<?php echo esc_attr( "{$slug}-{$tab_suffix}-options" ); ?>" class="panel woocommerce_options_panel" style="display:none">
+                <div id="<?php echo esc_attr( "{$tab_id}-options" ); ?>" class="panel woocommerce_options_panel" style="display:none">
                     <?php
                     /**
                      * Display the product type / option data fields
@@ -183,7 +183,7 @@ abstract class Product_Type_Extender {
                      * @param string $tab_suffix The tab suffix.
                      * @since 1.0.0
                      */
-                    do_action( "woocommerce_product_options_{$slug}", $tab_suffix );
+                    do_action( "woocommerce_product_options_{$slug}", $tab_to_add['id'] );
                     ?>
                 </div>
                 <?php
@@ -213,12 +213,41 @@ abstract class Product_Type_Extender {
     }
 
     /**
+     * Adds the custom css needed for the icons to work
+     */
+    public function add_custom_product_css() {
+        if ( empty( $this->product_types ) || empty( $this->product_options ) ) {
+            return;
+        }
+
+        echo '<' . 'style type="text/css">'; //phpcs:ignore
+        foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
+            if ( empty( $type['tabs'] ) ) {
+                continue;
+            }
+
+            foreach ( $type['tabs'] as $tab ) {
+                if ( empty( $tab['icon'] ?? '' ) ) {
+                    continue;
+                }
+
+                printf(
+                    '#woocommerce-product-data ul.wc-tabs li.%s_%s_options a::before { content: "%s"; }%s',
+                    esc_attr( $slug ),
+                    esc_attr( $tab['id'] ),
+                    esc_attr( $tab['icon'] ),
+                    "\n",
+                );
+            }
+        }
+        echo '</style>';
+    }
+
+    /**
      * Adds custom javascript needed for the custom product types to work
      */
     public function add_custom_product_types_js() {
-        global $pagenow, $typenow;
-
-        if ( ! in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' !== $typenow && ! empty( $this->product_types ) ) {
+        if ( ! $this->is_product_edit_page() || empty( $this->product_types ) ) {
             return;
         }
 
@@ -232,7 +261,7 @@ abstract class Product_Type_Extender {
         }
 
         ?>
-        <script>
+        <script type="text/javascript" id="pte-pt-js">
             var utilAdditionalTypes = <?php echo wp_json_encode( $opt_groups ); ?>;
 
             jQuery(document).ready(() => {
@@ -263,13 +292,11 @@ abstract class Product_Type_Extender {
      * Adds the javascript needed for the custom options selectors to work
      */
     public function add_custom_product_options_js() {
-        global $pagenow, $typenow;
-
-        if ( ! in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' !== $typenow && ! empty( $this->product_options ) ) {
+        if ( ! $this->is_product_edit_page() && empty( $this->product_options ) ) {
             return;
         }
         ?>
-        <script>
+        <script type="text/javascript" id="pte-po-js">
             var utilAdditionalOpts = <?php echo wp_json_encode( array_keys( $this->product_options ) ); ?>;
             jQuery(document).ready(() => {
 
