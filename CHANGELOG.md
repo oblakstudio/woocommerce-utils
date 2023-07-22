@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.1.0...v1.2.0) (2023-07-22)
+
+
+### Features
+
+* Added product options registration ([ea3e649](https://github.com/oblakstudio/woocommerce-utils/commit/ea3e649ddcbceaa7ef528799da984a2216091f0b))
+
 # [1.1.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.0.2...v1.1.0) (2023-07-17)
 
 
