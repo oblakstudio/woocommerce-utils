@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.0...v1.3.1) (2023-07-22)
+
+
+### Bug Fixes
+
+* Fixed prop saving ([753b39c](https://github.com/oblakstudio/woocommerce-utils/commit/753b39c4fc7fd67efbd4e414dab6292fb8e9c70b))
+
 # [1.3.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.2.0...v1.3.0) (2023-07-22)
 
 
