@@ -16,33 +16,6 @@ namespace Oblak\WooCommerce\Product;
 abstract class Product_Type_Extender {
 
     /**
-     * Product types array
-     *
-     * Product type is an array keyed by product type slug, with the following properties:
-     *  * name:  Product type name.
-     *  * class: Product type class name.
-     *  * tabs:  Array of tabs to add to the product type.
-     *
-     * @var array
-     */
-    protected $product_types = array();
-
-    /**
-     * Product options array
-     *
-     * Product option is an array keyed by product option slug, with the following properties:
-     *  * name: Product option name,
-     *  * for: Array of product type slugs for which the option is available.
-     *  * label: Label for the option.
-     *  * description: Description for the option.
-     *  * default: Default value for the option. Can be `yes` or `no`, or a boolean.
-     *  * is_prop: Whether the option is a product property, or a meta data
-     *
-     * @var array
-     */
-    protected $product_options = array();
-
-    /**
      * Class constructor
      */
     public function __construct() {
@@ -57,6 +30,33 @@ abstract class Product_Type_Extender {
         add_action( 'admin_footer', array( $this, 'add_custom_product_options_js' ), 99, 1 );
 
     }
+
+    /**
+     * Returns the product types array
+     *
+     * Product type is an array keyed by product type slug, with the following properties:
+     *  * name:  Product type name.
+     *  * class: Product type class name.
+     *  * tabs:  Array of tabs to add to the product type.
+     *
+     * @return array
+     */
+    abstract protected function get_product_types();
+
+    /**
+     * Get the product options array
+     *
+     * Product option is an array keyed by product option slug, with the following properties:
+     *  * name: Product option name,
+     *  * for: Array of product type slugs for which the option is available.
+     *  * label: Label for the option.
+     *  * description: Description for the option.
+     *  * default: Default value for the option. Can be `yes` or `no`, or a boolean.
+     *  * is_prop: Whether the option is a product property, or a meta data
+     *
+     * @return array
+     */
+    abstract protected function get_product_options();
 
     /**
      * Checks if we're on the product edit page
@@ -78,7 +78,7 @@ abstract class Product_Type_Extender {
     public function add_custom_product_types( $types ) {
         $new_types = array();
 
-        foreach ( $this->product_types as $slug => $type ) {
+        foreach ( $this->get_product_types() as $slug => $type ) {
             if ( in_array( $slug, array_keys( $types ), true ) ) {
                 continue;
             }
@@ -102,7 +102,7 @@ abstract class Product_Type_Extender {
     public function add_custom_product_options( $options ) {
         $new_options = array();
 
-        foreach ( $this->product_options as $slug => $option ) {
+        foreach ( $this->get_product_options() as $slug => $option ) {
             if ( in_array( $slug, array_keys( $options ), true ) ) {
                 continue;
             }
@@ -135,11 +135,11 @@ abstract class Product_Type_Extender {
      * @return string               Modified classname.
      */
     public function modify_product_classnames( $classname, $product_type ) {
-        if ( ! isset( $this->product_types[ $product_type ] ) ) {
+        if ( ! isset( $this->get_product_types()[ $product_type ] ) ) {
             return $classname;
         }
 
-        return $this->product_types[ $product_type ]['class'];
+        return $this->get_product_types()[ $product_type ]['class'];
     }
 
     /**
@@ -149,7 +149,7 @@ abstract class Product_Type_Extender {
      * @return array       Modified product data tabs.
      */
     public function add_product_type_data_tabs( $tabs ) {
-        foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
+        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
             $type_tabs = $type['tabs'] ?? array();
 
             foreach ( $type_tabs as $tab_to_add ) {
@@ -170,7 +170,7 @@ abstract class Product_Type_Extender {
      * Adds the custom product type data panels
      */
     public function add_product_type_data_panels() {
-        foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
+        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
             $type_tabs = $type['tabs'] ?? array();
             foreach ( $type_tabs as $tab_to_add ) {
                 $tab_id = "{$slug}_{$tab_to_add['id']}";
@@ -198,7 +198,7 @@ abstract class Product_Type_Extender {
      */
     public function set_custom_options_status( $product ) {
 
-        foreach ( $this->product_options as $slug => $option ) {
+        foreach ( $this->get_product_options() as $slug => $option ) {
             $option_status = wc_bool_to_string( 'on' === wc_clean( wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ) ); //phpcs:ignore WordPress.Security.NonceVerification.Missing
 
             if ( $option['is_prop'] ?? false ) {
@@ -217,12 +217,12 @@ abstract class Product_Type_Extender {
      * Adds custom css needed for the custom product tab icons to work
      */
     public function add_custom_product_css() {
-        if ( empty( $this->product_types ) || empty( $this->product_options ) ) {
+        if ( empty( $this->get_product_types() ) || empty( $this->get_product_options() ) ) {
             return;
         }
 
         echo '<' . 'style type="text/css">'; //phpcs:ignore
-        foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
+        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
             if ( empty( $type['tabs'] ) ) {
                 continue;
             }
@@ -248,13 +248,13 @@ abstract class Product_Type_Extender {
      * Adds custom javascript needed for the custom product types to work
      */
     public function add_custom_product_types_js() {
-        if ( ! $this->is_product_edit_page() || empty( $this->product_types ) ) {
+        if ( ! $this->is_product_edit_page() || empty( $this->get_product_types() ) ) {
             return;
         }
 
         $opt_groups = array();
 
-        foreach ( $this->product_types as $slug => $type ) {
+        foreach ( $this->get_product_types() as $slug => $type ) {
             $opt_groups[ $slug ] = array(
                 'groups' => $type['show_groups'] ?? array(),
                 'tabs'   => $type['show_tabs'] ?? array(),
@@ -293,12 +293,12 @@ abstract class Product_Type_Extender {
      * Adds the javascript needed for the custom options selectors to work
      */
     public function add_custom_product_options_js() {
-        if ( ! $this->is_product_edit_page() && empty( $this->product_options ) ) {
+        if ( ! $this->is_product_edit_page() && empty( $this->get_product_options() ) ) {
             return;
         }
         ?>
         <script type="text/javascript" id="pte-po-js">
-            var utilAdditionalOpts = <?php echo wp_json_encode( array_keys( $this->product_options ) ); ?>;
+            var utilAdditionalOpts = <?php echo wp_json_encode( array_keys( $this->get_product_options() ) ); ?>;
             jQuery(document).ready(() => {
 
                 utilAdditionalOpts.forEach((opt) => {
