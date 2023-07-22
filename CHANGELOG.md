@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.1...v1.3.2) (2023-07-22)
+
+
+### Bug Fixes
+
+* Fixed localization and hooks ([9001bb5](https://github.com/oblakstudio/woocommerce-utils/commit/9001bb569f0e3096154d9557eeadc2dd87990999))
+
 ## [1.3.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.0...v1.3.1) (2023-07-22)
 
 
