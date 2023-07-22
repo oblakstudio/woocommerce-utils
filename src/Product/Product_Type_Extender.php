@@ -199,9 +199,10 @@ abstract class Product_Type_Extender {
     public function set_custom_options_status( $product ) {
 
         foreach ( $this->product_options as $slug => $option ) {
-            $option_status = wc_clean(wp_unslash($_POST["_{$slug}"] ?? 'no')); // phpcs:ignore
+            $option_status = wc_bool_to_string( 'on' === wc_clean( wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ) ); //phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-            if ( $option['is_prop'] ) {
+            if ( $option['is_prop'] ?? false ) {
+                ( $option_status );
                 $product->{"set_{$slug}"}( $option_status );
             } else {
                 $product->add_meta_data( $slug, $option_status );
@@ -213,7 +214,7 @@ abstract class Product_Type_Extender {
     }
 
     /**
-     * Adds the custom css needed for the icons to work
+     * Adds custom css needed for the custom product tab icons to work
      */
     public function add_custom_product_css() {
         if ( empty( $this->product_types ) || empty( $this->product_options ) ) {
@@ -255,8 +256,8 @@ abstract class Product_Type_Extender {
 
         foreach ( $this->product_types as $slug => $type ) {
             $opt_groups[ $slug ] = array(
-                'groups' => $type['show_groups'],
-                'tabs'   => $type['show_tabs'],
+                'groups' => $type['show_groups'] ?? array(),
+                'tabs'   => $type['show_tabs'] ?? array(),
             );
         }
 
