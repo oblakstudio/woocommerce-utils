@@ -131,6 +131,18 @@ abstract class Product_Type_Extender {
     }
 
     /**
+     * Get the tab suffix.
+     *
+     * Basically strips the -options from the slug.
+     *
+     * @param  string $tab_label The tab label.
+     * @return string            The tab suffix.
+     */
+    private function get_tab_suffix( $tab_label ) {
+        return str_replace( '-options', '', sanitize_title( $tab_label ) );
+    }
+
+    /**
      * Add product type data tabs
      *
      * @param  array $tabs Product data tabs.
@@ -141,7 +153,7 @@ abstract class Product_Type_Extender {
             $type_tabs = $type['tabs'] ?? array();
 
             foreach ( $type_tabs as $tab_to_add ) {
-                $tab_suffix    = sanitize_title( $tab_to_add['label'] );
+                $tab_suffix    = $this->get_tab_suffix( $tab_to_add['label'] );
                 $tabs[ $slug ] = array(
                     'label'    => $tab_to_add['label'],
                     'target'   => "{$slug}-{$tab_suffix}-options",
@@ -161,7 +173,7 @@ abstract class Product_Type_Extender {
         foreach ( array_merge( $this->product_types, $this->product_options ) as $slug => $type ) {
             $type_tabs = $type['tabs'] ?? array();
             foreach ( $type_tabs as $tab_to_add ) {
-                $tab_suffix = sanitize_title( $tab_to_add['label'] );
+                $tab_suffix = $this->get_tab_suffix( $tab_to_add['label'] );
                 ?>
                 <div id="<?php echo esc_attr( "{$slug}-{$tab_suffix}-options" ); ?>" class="panel woocommerce_options_panel" style="display:none">
                     <?php
