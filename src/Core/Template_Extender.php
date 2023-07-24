@@ -8,6 +8,11 @@
 
 namespace Oblak\WooCommerce\Core;
 
+use WC_Admin_Status;
+use WP_REST_Request;
+use WP_REST_Response;
+use WP_REST_Server;
+
 /**
  * Enables easy extending of WooCommerce templates.
  *
@@ -54,6 +59,8 @@ abstract class Template_Extender {
         }
         add_filter( 'woocommerce_get_path_define_tokens', array( $this, 'add_path_define_tokens' ), 99, 1 );
         add_filter( 'woocommerce_locate_template', array( $this, 'modify_template_path' ), 99, 2 );
+        add_filter( 'pre_set_transient_wc_system_status_theme_info', array( $this, 'add_custom_template_files_to_status_report' ), 99, 1 );
+        add_filter( 'rest_pre_dispatch', array( $this, 'modify_rest_response' ), 22, 3 );
     }
 
     /**
@@ -103,6 +110,109 @@ abstract class Template_Extender {
             ? $template
             : trailingslashit( $this->base_path ) . $template_name;
 
+    }
+
+    /**
+     * Modifies the REST response for the WooCommerce system status
+     *
+     * @param  WP_REST_Response $response REST response.
+     * @param  WP_REST_Server   $server   REST server.
+     * @param  WP_REST_Request  $request  REST request.
+     * @return WP_REST_Response           Modified REST response.
+     */
+    public function modify_rest_response( $response, $server, $request ) {
+        if ( ! str_contains( $request->get_route(), 'system_status' ) ) {
+            return $response;
+        }
+
+        remove_filter( 'rest_pre_dispatch', array( $this, 'modify_rest_response' ), 22, 3 );
+
+        wc()->api->get_endpoint_data( '/wc/v3/system_status' );
+
+        return $response;
+
+    }
+
+    /**
+     * Adds plugin custom templates to the WooCommerce system status report.
+     *
+     * @param  array $theme_info Theme info.
+     * @return array             Modified theme info.
+     */
+    public function add_custom_template_files_to_status_report( $theme_info ) {
+        if ( empty( $this->templates ) && empty( $this->static_templates ) ) {
+            return $theme_info;
+        }
+
+        $woocommerce_template_files = WC_Admin_Status::scan_template_files( WC()->plugin_path() . '/templates/' );
+        $plugin_all_files           = array_unique( array_merge( $this->templates, $this->static_templates ) );
+        $common_static_files        = array_intersect( $woocommerce_template_files, array_intersect( $plugin_all_files, $this->static_templates ) );
+        $plugin_static_files        = array_diff( $plugin_all_files, $common_static_files );
+        $plugin_custom_files        = array_diff( $plugin_all_files, $this->static_templates );
+
+        // Remove WooCommerce templates overriden statically by the plugin.
+        foreach ( $common_static_files as $static_file ) {
+            $theme_info['overrides'] = array_filter(
+                $theme_info['overrides'],
+                function( $data ) use ( $static_file ) {
+                    return $this->remove_file_from_overrides( $data, $static_file );
+                }
+            );
+        }
+
+        $theme_info['overrides'] = array_merge(
+            $this->check_file_versions( $common_static_files, $this->base_path ),
+            $this->check_file_versions( $plugin_static_files, $this->base_path ),
+            $this->check_file_versions( $plugin_custom_files, get_stylesheet_directory(), $this->base_path ),
+            $theme_info['overrides'],
+        );
+
+        return $theme_info;
+    }
+
+    /**
+     * Removes WooCommerce templates overriden statically by the plugin.
+     *
+     * @param  array  $file_data File data.
+     * @param  string $file_path File path.
+     */
+    private function remove_file_from_overrides( $file_data, $file_path ) {
+        return ! str_contains( $file_data['file'], $file_path );
+    }
+
+    /**
+     * Checks the version of the files.
+     *
+     * @param  string[] $files_to_check Array of files to check.
+     * @param  string   $base_path      Base path.
+     * @param  string   $core_path      Core path.
+     */
+    private function check_file_versions( $files_to_check, $base_path, $core_path = '' ) {
+        $override_files = array();
+
+        if ( '' === $core_path ) {
+            $core_path = WC()->plugin_path() . '/templates/';
+        }
+
+        foreach ( $files_to_check as $file ) {
+            $located = trailingslashit( $base_path ) . $file;
+
+            $to_replace = str_contains( $base_path, 'themes' ) && file_exists( $located )
+            ? WP_CONTENT_DIR . '/themes/'
+            : trailingslashit( WP_CONTENT_DIR );
+
+            $our_version  = WC_Admin_Status::get_file_version( $located );
+            $core_version = WC_Admin_Status::get_file_version( $core_path . $file );
+
+            $override_files[] = array(
+                'file'         => str_replace( $to_replace, '', $located ),
+                'version'      => $our_version,
+                'core_version' => $core_version,
+            );
+
+        }
+
+        return $override_files;
     }
 
 }
