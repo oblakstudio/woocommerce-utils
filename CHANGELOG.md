@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.2...v1.4.0) (2023-07-24)
+
+
+### Bug Fixes
+
+* Fixed LICENSE ([4cb847f](https://github.com/oblakstudio/woocommerce-utils/commit/4cb847f35f6b10677e24c5257b6010695d3deac9))
+
+
+### Features
+
+* Added plugin templates to WC Admin status ([4440384](https://github.com/oblakstudio/woocommerce-utils/commit/4440384ea47a17c86bb4c436a17588ffcca7d7df))
+
 ## [1.3.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.1...v1.3.2) (2023-07-22)
 
 
