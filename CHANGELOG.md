@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.0...v1.4.1) (2023-07-25)
+
+
+### Bug Fixes
+
+* Fixed template version check ([9a9b200](https://github.com/oblakstudio/woocommerce-utils/commit/9a9b200161e21e37b6e6cc920dcdef5090baaa77))
+
 # [1.4.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.3.2...v1.4.0) (2023-07-24)
 
 
