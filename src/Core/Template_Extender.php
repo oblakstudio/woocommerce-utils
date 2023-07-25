@@ -125,7 +125,7 @@ abstract class Template_Extender {
             return $response;
         }
 
-        remove_filter( 'rest_pre_dispatch', array( $this, 'modify_rest_response' ), 22, 3 );
+        remove_filter( 'rest_pre_dispatch', array( $this, 'modify_rest_response' ), 22 );
 
         wc()->api->get_endpoint_data( '/wc/v3/system_status' );
 
@@ -147,8 +147,8 @@ abstract class Template_Extender {
         $woocommerce_template_files = WC_Admin_Status::scan_template_files( WC()->plugin_path() . '/templates/' );
         $plugin_all_files           = array_unique( array_merge( $this->templates, $this->static_templates ) );
         $common_static_files        = array_intersect( $woocommerce_template_files, array_intersect( $plugin_all_files, $this->static_templates ) );
-        $plugin_static_files        = array_diff( $plugin_all_files, $common_static_files );
-        $plugin_custom_files        = array_diff( $plugin_all_files, $this->static_templates );
+        $plugin_static_files        = array_diff( $this->static_templates, $common_static_files );
+        $plugin_custom_files        = array_diff( $plugin_all_files, $this->static_templates, $woocommerce_template_files, );
 
         // Remove WooCommerce templates overriden statically by the plugin.
         foreach ( $common_static_files as $static_file ) {
@@ -163,7 +163,7 @@ abstract class Template_Extender {
         $theme_info['overrides'] = array_merge(
             $this->check_file_versions( $common_static_files, $this->base_path ),
             $this->check_file_versions( $plugin_static_files, $this->base_path ),
-            $this->check_file_versions( $plugin_custom_files, get_stylesheet_directory(), $this->base_path ),
+            $this->check_file_versions( $plugin_custom_files, get_stylesheet_directory() . '/woocommerce', $this->base_path ),
             $theme_info['overrides'],
         );
 
@@ -188,25 +188,27 @@ abstract class Template_Extender {
      * @param  string   $core_path      Core path.
      */
     private function check_file_versions( $files_to_check, $base_path, $core_path = '' ) {
-        $override_files = array();
-
         if ( '' === $core_path ) {
-            $core_path = WC()->plugin_path() . '/templates/';
+            $core_path = WC()->plugin_path() . '/templates';
         }
+
+        $override_files = array();
+        $base_path      = trailingslashit( $base_path );
+        $core_path      = trailingslashit( $core_path );
+
+        $to_replace = str_contains( $base_path, 'themes' )
+            ? WP_CONTENT_DIR . '/themes/'
+            : WP_PLUGIN_DIR . '/';
 
         foreach ( $files_to_check as $file ) {
             $located = trailingslashit( $base_path ) . $file;
-
-            $to_replace = str_contains( $base_path, 'themes' ) && file_exists( $located )
-            ? WP_CONTENT_DIR . '/themes/'
-            : trailingslashit( WP_CONTENT_DIR );
 
             $our_version  = WC_Admin_Status::get_file_version( $located );
             $core_version = WC_Admin_Status::get_file_version( $core_path . $file );
 
             $override_files[] = array(
                 'file'         => str_replace( $to_replace, '', $located ),
-                'version'      => $our_version,
+                'version'      => ! empty( $our_version ) ? $our_version : $core_version,
                 'core_version' => $core_version,
             );
 
