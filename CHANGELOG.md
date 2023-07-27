@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.1...v1.4.2) (2023-07-27)
+
+
+### Bug Fixes
+
+* Fixed gitattributes ([a3c69c4](https://github.com/oblakstudio/woocommerce-utils/commit/a3c69c4714b64d5dc732ddb9bae2da7d4c88cecc))
+
 ## [1.4.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.0...v1.4.1) (2023-07-25)
 
 
