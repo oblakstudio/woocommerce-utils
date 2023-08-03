@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.2...v1.5.0) (2023-08-03)
+
+
+### Features
+
+* Implemented Extended Settings ([cc9f3bb](https://github.com/oblakstudio/woocommerce-utils/commit/cc9f3bba0da22b4073a756f0440000e9fc2461e8))
+
 ## [1.4.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.1...v1.4.2) (2023-07-27)
 
 
