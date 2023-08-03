@@ -59,8 +59,8 @@ abstract class Template_Extender {
         }
         add_filter( 'woocommerce_get_path_define_tokens', array( $this, 'add_path_define_tokens' ), 99, 1 );
         add_filter( 'woocommerce_locate_template', array( $this, 'modify_template_path' ), 99, 2 );
-        add_filter( 'pre_set_transient_wc_system_status_theme_info', array( $this, 'add_custom_template_files_to_status_report' ), 99, 1 );
         add_filter( 'rest_pre_dispatch', array( $this, 'modify_rest_response' ), 22, 3 );
+        add_filter( 'pre_set_transient_wc_system_status_theme_info', array( $this, 'add_custom_template_files_to_status_report' ), 99, 1 );
     }
 
     /**
