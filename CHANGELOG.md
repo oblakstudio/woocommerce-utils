@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.7.0...v1.8.0) (2023-08-06)
+
+
+### Features
+
+* Added options to remove from product options selector ([110ff06](https://github.com/oblakstudio/woocommerce-utils/commit/110ff06a27dfae6c62f29e618503ad4fc952b03e))
+
 # [1.7.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.6.0...v1.7.0) (2023-08-06)
 
 
