@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.5.0...v1.6.0) (2023-08-06)
+
+
+### Features
+
+* Reworked classes ([d92afa0](https://github.com/oblakstudio/woocommerce-utils/commit/d92afa0ad2c65368383e9fe27917a67cb360163f))
+
 # [1.5.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.4.2...v1.5.0) (2023-08-03)
 
 
