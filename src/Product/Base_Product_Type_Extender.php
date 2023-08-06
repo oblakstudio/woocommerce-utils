@@ -16,6 +16,13 @@ namespace Oblak\WooCommerce\Product;
 abstract class Base_Product_Type_Extender {
 
     /**
+     * Types to remove from the product type selector
+     *
+     * @var string[]
+     */
+    protected $types_to_remove = array();
+
+    /**
      * Class constructor
      */
     public function __construct() {
@@ -88,6 +95,10 @@ abstract class Base_Product_Type_Extender {
             if ( ! get_term_by( 'slug', $slug, 'product_type' ) ) {
                 wp_insert_term( $slug, 'product_type' );
             }
+        }
+
+        foreach ( $this->types_to_remove as $type_to_remove ) {
+            unset( $types[ $type_to_remove ] );
         }
 
         return array_merge( $types, $new_types );
