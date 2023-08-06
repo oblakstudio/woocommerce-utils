@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.6.0...v1.7.0) (2023-08-06)
+
+
+### Features
+
+* Added types to remove to product type selector ([9017c76](https://github.com/oblakstudio/woocommerce-utils/commit/9017c7613c061c8d8ee4661e6b9c6687924035f8))
+
 # [1.6.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.5.0...v1.6.0) (2023-08-06)
 
 
