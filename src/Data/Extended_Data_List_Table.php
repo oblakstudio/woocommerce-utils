@@ -177,14 +177,16 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
      * @param  string $which Which tablenav.
      */
     final public function extra_tablenav( $which ) {
-        if ( 'top' !== $which ) {
+        $tablenav_filters = $this->get_extra_tablenav_filters();
+
+        if ( 'top' !== $which || empty( $tablenav_filters ) ) {
             return;
         }
 
         echo '<input type="hidden" name="s" value="">';
         echo '<div class="alignleft actions">';
 
-        foreach ( $this->get_extra_tablenav_filters() as $type => $filter_data ) {
+        foreach ( $tablenav_filters as $type => $filter_data ) {
             $this->display_tablenav_filter( $type, $filter_data );
         }
 

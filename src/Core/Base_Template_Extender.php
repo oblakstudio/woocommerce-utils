@@ -18,7 +18,7 @@ use WP_REST_Server;
  *
  * @since 1.1.0
  */
-abstract class Template_Extender {
+abstract class Base_Template_Extender {
 
     /**
      * Base path

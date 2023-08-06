@@ -13,7 +13,7 @@ namespace Oblak\WooCommerce\Product;
  *
  * @since 1.1.0
  */
-abstract class Product_Type_Extender {
+abstract class Base_Product_Type_Extender {
 
     /**
      * Class constructor
@@ -79,7 +79,7 @@ abstract class Product_Type_Extender {
         $new_types = array();
 
         foreach ( $this->get_product_types() as $slug => $type ) {
-            if ( in_array( $slug, array_keys( $types ), true ) ) {
+            if ( in_array( $slug, array_keys( $types ), true ) || 'variation' === $slug ) {
                 continue;
             }
 
@@ -91,6 +91,21 @@ abstract class Product_Type_Extender {
         }
 
         return array_merge( $types, $new_types );
+    }
+
+    /**
+     * Modifies product classnames.
+     *
+     * @param  string $classname    Product classname.
+     * @param  string $product_type Product type.
+     * @return string               Modified classname.
+     */
+    public function modify_product_classnames( $classname, $product_type ) {
+        if ( ! isset( $this->get_product_types()[ $product_type ] ) ) {
+            return $classname;
+        }
+
+        return $this->get_product_types()[ $product_type ]['class'];
     }
 
     /**
@@ -125,21 +140,6 @@ abstract class Product_Type_Extender {
         }
 
         return array_merge( $options, $new_options );
-    }
-
-    /**
-     * Modifies product classnames.
-     *
-     * @param  string $classname    Product classname.
-     * @param  string $product_type Product type.
-     * @return string               Modified classname.
-     */
-    public function modify_product_classnames( $classname, $product_type ) {
-        if ( ! isset( $this->get_product_types()[ $product_type ] ) ) {
-            return $classname;
-        }
-
-        return $this->get_product_types()[ $product_type ]['class'];
     }
 
     /**
