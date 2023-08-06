@@ -23,6 +23,13 @@ abstract class Base_Product_Type_Extender {
     protected $types_to_remove = array();
 
     /**
+     * Options to remove from the options selector
+     *
+     * @var string[]
+     */
+    protected $options_to_remove = array();
+
+    /**
      * Class constructor
      */
     public function __construct() {
@@ -97,11 +104,7 @@ abstract class Base_Product_Type_Extender {
             }
         }
 
-        foreach ( $this->types_to_remove as $type_to_remove ) {
-            unset( $types[ $type_to_remove ] );
-        }
-
-        return array_merge( $types, $new_types );
+        return array_diff_key( array_merge( $types, $new_types ), array_flip( $this->types_to_remove ) );
     }
 
     /**
@@ -150,7 +153,7 @@ abstract class Base_Product_Type_Extender {
 
         }
 
-        return array_merge( $options, $new_options );
+        return array_diff_key( array_merge( $options, $new_options ), array_flip( $this->options_to_remove ) );
     }
 
     /**
