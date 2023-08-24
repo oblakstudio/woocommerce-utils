@@ -171,11 +171,11 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
     final public function sanitize_nested_array( mixed $value, array $option, mixed $raw_value ) {
         if (
             ! str_ends_with( $option['id'], '[]' ) ||
-            ( isset( $option['field_name'] ) && ! str_ends_with( $option['id'], '[]' ) )
+            ( isset( $option['field_name'] ) && ! str_ends_with( $option['field_name'], '[]' ) )
             ) {
             return $value;
         }
 
-        return array_map( $option['sanitize'] ?? 'wc_clean', array_filter( $raw_value ) );
+        return array_filter( array_map( $option['sanitize'] ?? 'wc_clean', array_filter( $raw_value ) ) );
     }
 }
