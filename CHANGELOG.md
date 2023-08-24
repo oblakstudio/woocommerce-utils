@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.0...v1.8.1) (2023-08-24)
+
+
+### Bug Fixes
+
+* Fixed nested array sanitization ([f42d340](https://github.com/oblakstudio/woocommerce-utils/commit/f42d34020f5cde81fb494f1187e09054d9828d50))
+
 # [1.8.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.7.0...v1.8.0) (2023-08-06)
 
 
