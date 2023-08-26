@@ -1,3 +1,10 @@
+## [1.8.4](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.3...v1.8.4) (2023-08-26)
+
+
+### Bug Fixes
+
+* Small fixes ([5f127be](https://github.com/oblakstudio/woocommerce-utils/commit/5f127bec4008ac32f9915f9851c850c92953c4b9))
+
 ## [1.8.3](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.2...v1.8.3) (2023-08-24)
 
 
