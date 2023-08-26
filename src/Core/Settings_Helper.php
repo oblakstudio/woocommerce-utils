@@ -25,7 +25,7 @@ trait Settings_Helper {
      * @param  mixed  $default_value The default value for the settings.
      * @return array                 The settings array.
      */
-    protected function load_settings( string $prefix, array $raw_settings, mixed $default_value ): array {
+    protected function load_settings( string $prefix, array $raw_settings, $default_value ): array {
         $defaults   = $this->get_defaults( $raw_settings, $default_value );
         $settings   = array();
         $option_key = $prefix . '_settings_';
@@ -70,7 +70,7 @@ trait Settings_Helper {
      * @param  mixed $default_value The default value for the settings.
      * @return array                The default values.
      */
-    protected function get_defaults( array $settings, mixed $default_value = false ): array {
+    protected function get_defaults( array $settings, $default_value = false ): array {
         $defaults = array();
         foreach ( $settings as $section => $data ) {
             $section_data = array();
@@ -96,7 +96,7 @@ trait Settings_Helper {
      * @param  string ...$args The sub-sections to get.
      * @return mixed           Array of settings or a single setting.
      */
-    public function get_settings( string $section = 'all', string ...$args ): mixed {
+    public function get_settings( string $section = 'all', string ...$args ) {
         if ( 'all' === $section ) {
             return $this->settings;
         }
