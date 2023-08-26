@@ -135,6 +135,9 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         $settings = $this->settings[ $section ]['fields'];
 
         foreach ( $settings as $index => $field ) {
+            if ( isset( $field['field_name'] ) ) {
+                continue;
+            }
             $settings[ $index ]['id'] = $this->get_setting_field_id( $this->get_option_key( $section ), $field );
         }
 
@@ -169,10 +172,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @param  mixed $raw_value Raw value.
      */
     final public function sanitize_nested_array( mixed $value, array $option, mixed $raw_value ) {
-        if (
-            ! str_ends_with( $option['id'], '[]' ) &&
-            ( isset( $option['field_name'] ) && ! str_ends_with( $option['field_name'], '[]' ) )
-            ) {
+        if ( ! str_ends_with( $option['field_name'] ?? $option['id'], '[]' ) ) {
             return $value;
         }
 
