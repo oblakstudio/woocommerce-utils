@@ -23,20 +23,6 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
     protected array $settings;
 
     /**
-     * Settings page ID
-     *
-     * @var string
-     */
-    protected $id;
-
-    /**
-     * Settings page label
-     *
-     * @var string
-     */
-    protected $label;
-
-    /**
      * Class constructor
      *
      * @param string $id             Settings page ID.
@@ -44,11 +30,11 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @param array  $settings_array Array of settings.
      */
     public function __construct( string $id, string $label, array $settings_array ) {
-        parent::__construct();
-
         $this->id       = $id;
         $this->label    = $label;
         $this->settings = $this->parse_settings( $settings_array );
+
+        parent::__construct();
 
         $this->init_hooks();
     }
