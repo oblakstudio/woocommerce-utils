@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.2...v1.8.3) (2023-08-24)
+
+
+### Bug Fixes
+
+* Implemented filter on sanitize ([01e8612](https://github.com/oblakstudio/woocommerce-utils/commit/01e8612984895f6077843de99e0152d2662913be))
+
 ## [1.8.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.1...v1.8.2) (2023-08-24)
 
 
