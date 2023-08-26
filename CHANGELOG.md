@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.0...v1.9.1) (2023-08-26)
+
+
+### Bug Fixes
+
+* Removed mixed type from function call ([4391eee](https://github.com/oblakstudio/woocommerce-utils/commit/4391eee06c0b0e56fc13aceb10f5e4c730832715))
+
 # [1.9.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.8.4...v1.9.0) (2023-08-26)
 
 
