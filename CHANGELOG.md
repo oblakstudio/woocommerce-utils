@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.1...v1.9.2) (2023-08-26)
+
+
+### Bug Fixes
+
+* Finalized PHP 7.4 compat ([2db1e19](https://github.com/oblakstudio/woocommerce-utils/commit/2db1e191a608b4d1474afb34e4ddaf0a524c5d98))
+
 ## [1.9.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.0...v1.9.1) (2023-08-26)
 
 
