@@ -1,3 +1,10 @@
+## [1.9.3](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.2...v1.9.3) (2023-08-26)
+
+
+### Bug Fixes
+
+* Fixed class instatiation ([b5a2e5b](https://github.com/oblakstudio/woocommerce-utils/commit/b5a2e5b653e80b2e21a039fc8d97809322835072))
+
 ## [1.9.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.1...v1.9.2) (2023-08-26)
 
 
