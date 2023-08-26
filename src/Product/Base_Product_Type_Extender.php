@@ -42,7 +42,6 @@ abstract class Base_Product_Type_Extender {
         add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
         add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
         add_action( 'admin_footer', array( $this, 'add_custom_product_options_js' ), 99, 1 );
-
     }
 
     /**
@@ -141,7 +140,7 @@ abstract class Base_Product_Type_Extender {
                 'wrapper_class' => implode(
                     ' ',
                     array_map(
-                        function( $type ) {
+                        function ( $type ) {
                             return "show_if_{$type}"; },
                         $option['for']
                     )
@@ -211,7 +210,6 @@ abstract class Base_Product_Type_Extender {
      * @param  \WC_Product $product Product object.
      */
     public function set_custom_options_status( $product ) {
-
         foreach ( $this->get_product_options() as $slug => $option ) {
             $option_status = wc_bool_to_string( 'on' === wc_clean( wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ) ); //phpcs:ignore WordPress.Security.NonceVerification.Missing
 
@@ -224,7 +222,6 @@ abstract class Base_Product_Type_Extender {
         }
 
         $product->save();
-
     }
 
     /**
@@ -339,8 +336,5 @@ abstract class Base_Product_Type_Extender {
             });
         </script>
         <?php
-
     }
-
-
 }

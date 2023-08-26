@@ -78,12 +78,12 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     /**
      * Reads the entity data from the database.
      *
-     * @param WC_Data $object Object.
+     * @param WC_Data $the_object Object.
      * @since 2.0.1
      */
-    protected function read_entity_data( &$object ) {
-        $object_id   = $object->get_id();
-        $meta_values = get_metadata( $this->get_entity_name(), $object_id );
+    protected function read_entity_data( &$the_object ) {
+        $the_object_id = $the_object->get_id();
+        $meta_values   = get_metadata( $this->get_entity_name(), $the_object_id );
 
         $set_props = array();
 
@@ -92,46 +92,46 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             $set_props[ $prop ] = maybe_unserialize( $meta_value ); // get_post_meta only unserializes single values.
         }
 
-        $object->set_props( $set_props );
+        $the_object->set_props( $set_props );
     }
 
     /**
      * Updates the entity meta data in the database.
      *
-     * @param WC_Data $object Map Object.
+     * @param WC_Data $the_object Map Object.
      * @param bool    $force  Force update. Used during create.
      *
      * @since 2.0.1
      */
-    protected function update_entity_meta( &$object, $force = false ) {
+    protected function update_entity_meta( &$the_object, $force = false ) {
         $props_to_update = $force
             ? $this->meta_key_to_props
-            : $this->get_props_to_update( $object, $this->meta_key_to_props );
+            : $this->get_props_to_update( $the_object, $this->meta_key_to_props );
 
         foreach ( $props_to_update as $meta_key => $prop ) {
-            $value = $object->{"get_$prop"}( 'edit' );
+            $value = $the_object->{"get_$prop"}( 'edit' );
 
             if ( in_array( $prop, $this->boolean_props, true ) ) {
                 $value = wc_bool_to_string( $value );
             }
 
-            $updated = $this->update_or_delete_entity_meta( $object, $meta_key, $value );
+            $updated = $this->update_or_delete_entity_meta( $the_object, $meta_key, $value );
         }
     }
 
     /**
      * Updates or deletes entity meta data
      *
-     * @param  WC_Data $object     Object.
+     * @param  WC_Data $the_object     Object.
      * @param  string  $meta_key   Meta key.
      * @param  string  $meta_value Meta value.
      * @return bool                True if updated, false if not.
      */
-    protected function update_or_delete_entity_meta( $object, $meta_key, $meta_value ) {
+    protected function update_or_delete_entity_meta( $the_object, $meta_key, $meta_value ) {
         if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-            $updated = delete_metadata( $this->get_entity_name(), $object->get_id(), $meta_key );
+            $updated = delete_metadata( $this->get_entity_name(), $the_object->get_id(), $meta_key );
         } else {
-            $updated = update_metadata( $this->get_entity_name(), $object->get_id(), $meta_key, $meta_value );
+            $updated = update_metadata( $this->get_entity_name(), $the_object->get_id(), $meta_key, $meta_value );
         }
 
         return (bool) $updated;
@@ -152,7 +152,6 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         return ! empty( $where_clauses )
             ? (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()} WHERE 1=1{$where_clauses}" )
             : (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()}" );
-
     }
 
     /**
@@ -249,6 +248,5 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $escaped_like = $left_wildcard . $value . $right_wildcard;
 
         return "LIKE '{$escaped_like}'";
-
     }
 }

@@ -15,7 +15,6 @@ use WP_List_Table;
  * Standardized list table for extended data stores
  */
 abstract class Extended_Data_List_Table extends WP_List_Table {
-
     /**
      * Datastore holding the data
      *
@@ -66,7 +65,6 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
      * @param array  $args   Arguments for the list table.
      */
     public function __construct( $entity, $args ) {
-
         $this->data_store    = WC_Data_Store::load( $entity );
         $this->where_clauses = $this->parse_where_clauses();
 
@@ -108,7 +106,6 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
         }
 
         return $clauses;
-
     }
 
     /**
@@ -297,12 +294,12 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
 
         $actions = array_filter(
             $actions,
-            function( $action ) {
+            function ( $action ) {
                 return $action['when'];
             }
         );
         $actions = array_map(
-            function( $action ) {
+            function ( $action ) {
                 return sprintf(
                     '<a href="%s">%s</a>',
                     $action['url'],
@@ -323,7 +320,6 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
      * @return string              Column HTML.
      */
     public function column_default( $item, $column_name ) {
-
         global ${$this->row_variable};
 
         return ${$this->row_variable}->{"get_$column_name"}();
@@ -342,5 +338,4 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
             $item->ID
         );
     }
-
 }

@@ -109,7 +109,6 @@ abstract class Base_Template_Extender {
         return $template
             ? $template
             : trailingslashit( $this->base_path ) . $template_name;
-
     }
 
     /**
@@ -130,7 +129,6 @@ abstract class Base_Template_Extender {
         wc()->api->get_endpoint_data( '/wc/v3/system_status' );
 
         return $response;
-
     }
 
     /**
@@ -154,7 +152,7 @@ abstract class Base_Template_Extender {
         foreach ( $common_static_files as $static_file ) {
             $theme_info['overrides'] = array_filter(
                 $theme_info['overrides'],
-                function( $data ) use ( $static_file ) {
+                function ( $data ) use ( $static_file ) {
                     return $this->remove_file_from_overrides( $data, $static_file );
                 }
             );
@@ -216,5 +214,4 @@ abstract class Base_Template_Extender {
 
         return $override_files;
     }
-
 }

@@ -66,7 +66,6 @@ abstract class Custom_Query_Vars {
      * @return array             Modified product query.
      */
     public function get_product_query_vars( $query, $query_vars ) {
-
         static $relation_added = false;
 
         foreach ( $this->vars as $var ) {
@@ -130,5 +129,4 @@ abstract class Custom_Query_Vars {
 
         $wp_query->set( 'meta_query', $meta_query );
     }
-
 }

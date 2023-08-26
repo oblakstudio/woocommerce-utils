@@ -23,19 +23,31 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
     protected array $settings;
 
     /**
+     * Settings page ID
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * Settings page label
+     *
+     * @var string
+     */
+    protected $label;
+
+    /**
      * Class constructor
      *
      * @param string $id             Settings page ID.
      * @param string $label          Settings page label.
      * @param array  $settings_array Array of settings.
      */
-    public function __construct(
-        protected $id,
-        protected $label,
-        array $settings_array,
-    ) {
+    public function __construct( string $id, string $label, array $settings_array ) {
         parent::__construct();
 
+        $this->id       = $id;
+        $this->label    = $label;
         $this->settings = $this->parse_settings( $settings_array );
 
         $this->init_hooks();
@@ -82,14 +94,16 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         /**
          * Filter the settings array
          *
-         * @since 4.0.0
-         * @param array $base_settings Base settings array
+         * @param  array $settings Base settings array
+         * @return array Settings array
+         *
+         * @since 1.0.0
          */
-        $settings = apply_filters( 'woocommerce_raw_settings_' . $this->id, $settings );
+        $settings = apply_filters( "woocommerce_raw_settings_{$this->id}", $settings );
 
         uasort(
             $settings,
-            function( $a, $b ) {
+            function ( $a, $b ) {
                 return $a['priority'] - $b['priority'];
             }
         );
@@ -144,10 +158,13 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         /**
          * Filters the formated settings for the plugin
          *
-         * @since 2.2.0
          * @param array $settings Formated settings array
+         * @param string $section Section ID
+         * @return array Formated settings array
+         *
+         * @since 2.2.0
          */
-        return apply_filters( 'woocommerce_formatted_settings_' . $this->id, $settings, $section );
+        return apply_filters( "woocommerce_formatted_settings_{$this->id}", $settings, $section );
     }
 
     /**
