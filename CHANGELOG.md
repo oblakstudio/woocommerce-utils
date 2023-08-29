@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.10.0...v1.11.0) (2023-08-29)
+
+
+### Features
+
+* Fixed dynamic settings for ASP ([8ccc9b4](https://github.com/oblakstudio/woocommerce-utils/commit/8ccc9b47a87232f497981bcaddcb0bff3e6cf504))
+
 # [1.10.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.9.3...v1.10.0) (2023-08-29)
 
 
