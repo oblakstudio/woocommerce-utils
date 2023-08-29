@@ -26,9 +26,11 @@ trait Settings_Helper {
      * @return array                 The settings array.
      */
     protected function load_settings( string $prefix, array $raw_settings, $default_value ): array {
-        $defaults   = $this->get_defaults( $raw_settings, $default_value );
-        $settings   = array();
-        $option_key = $prefix . '_settings_';
+        // Documented in Extended_Settings_Page.php.
+        $raw_settings = apply_filters( "woocommerce_raw_settings_{$prefix}", $raw_settings );
+        $defaults     = $this->get_defaults( $raw_settings, $default_value );
+        $settings     = array();
+        $option_key   = $prefix . '_settings_';
 
         foreach ( $defaults as $section => $default_values ) {
             $section_settings     = wp_parse_args(

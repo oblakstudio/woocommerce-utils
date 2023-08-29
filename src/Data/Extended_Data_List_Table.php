@@ -235,7 +235,7 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
     final public function prepare_items( $per_page = 20, $page_number = 1 ) {
         $this->_column_headers = $this->get_column_info();
 
-        $per_page     = $this->get_items_per_page( "{$this->_args['plural']}_per_page", 20 );
+        $per_page     = $this->get_items_per_page( "edit_{$this->_args['plural']}_per_page", 20 );
         $current_page = $this->get_pagenum();
         $total_items  = $this->record_count();
 
@@ -295,16 +295,18 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
         $actions = array_filter(
             $actions,
             function ( $action ) {
-                return $action['when'];
+                return $action['when'] ?? true;
             }
         );
         $actions = array_map(
             function ( $action ) {
-                return sprintf(
-                    '<a href="%s">%s</a>',
-                    $action['url'],
-                    $action['title'],
-                );
+                return ! is_string( $action )
+                    ? sprintf(
+                        '<a href="%s">%s</a>',
+                        $action['url'],
+                        $action['title'],
+                    )
+                    : $action;
             },
             $actions
         );
@@ -337,5 +339,45 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
             $this->_args['singular'],
             $item->ID
         );
+    }
+
+    /**
+     * Displays the content for boolean output
+     *
+     * @param  string|bool $value Value of the prop.
+     * @param  string      $text  Text to display.
+     * @return string             HTML
+     */
+    protected function boolean_column( $value, $text = '' ) {
+        $value = wc_string_to_bool( $value );
+
+        $class = 'no';
+        $icon  = '<span class="dashicons dashicons-dismiss"></span>';
+        $color = '#d00';
+
+        if ( $value ) {
+            $class = 'yes';
+            $icon  = '<span class="dashicons dashicons-yes-alt"></span>';
+            $color = '#039403';
+        }
+
+        return ! empty( $text )
+            ? sprintf(
+                '<span class="table-icon icon-%s tips" data-tip="%s" style="color: %s;">
+                    %s
+                </span>',
+                esc_attr( $class ),
+                $text,
+                $color,
+                wp_kses_post( $icon )
+            )
+            : sprintf(
+                '<span class="table-icon icon-%s" style="color: %s;">
+                    %s
+                </span>',
+                esc_attr( $class ),
+                $color,
+                wp_kses_post( $icon )
+            );
     }
 }

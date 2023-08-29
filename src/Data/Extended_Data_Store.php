@@ -170,19 +170,50 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             'orderby'  => 'ID',
             'order'    => 'DESC',
         );
+        $fields   = '*';
 
         $args = wp_parse_args( $args, $defaults );
 
         $offset        = $args['per_page'] * ( $args['page'] - 1 );
         $where_clauses = $this->get_sql_where_clauses( $args, $clause_join );
 
-        return $wpdb->get_results(
+        $callback = 1 === $args['per_page'] ? 'get_row' : 'get_results';
+
+        if ( isset( $args['return'] ) ) {
+            switch ( $args['return'] ) {
+                case 'ids':
+                    $callback = 'get_col';
+                    $fields   = 'ID';
+                    break;
+                default:
+                    $fields = $args['return'];
+                    break;
+            }
+        }
+
+        return $wpdb->{"$callback"}(
             $wpdb->prepare(
-                "SELECT * FROM {$this->get_table()} WHERE 1=1{$where_clauses} ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
+                "SELECT {$fields} FROM {$this->get_table()} WHERE 1=1{$where_clauses} ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
                 $offset,
                 $args['per_page']
             )
         );
+    }
+
+    /**
+     * Get a single entity from the database
+     *
+     * @param  array  $args        Query arguments.
+     * @param  string $clause_join SQL join clause. Can be AND or OR.
+     * @return object[]            Array of entities.
+     */
+    public function get_entity( $args = array(), $clause_join = 'AND' ) {
+        $args = array_merge(
+            $args,
+            array( 'per_page' => 1 )
+        );
+
+        return $this->get_entities( $args, $clause_join );
     }
 
     /**
@@ -197,7 +228,13 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             return '';
         }
 
-        $args    = array_intersect_key( $args, array_flip( $this->get_searchable_columns() ) );
+        $args    = array_intersect_key(
+            $args,
+            array_merge(
+                array( 'ID' => 1010110 ),
+                array_flip( $this->get_searchable_columns() )
+            )
+        );
         $clauses = '';
 
         $this->first_clause = true;

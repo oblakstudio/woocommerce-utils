@@ -30,13 +30,12 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @param array  $settings_array Array of settings.
      */
     public function __construct( string $id, string $label, array $settings_array ) {
-        $this->id       = $id;
-        $this->label    = $label;
-        $this->settings = $this->parse_settings( $settings_array );
+        $this->id    = $id;
+        $this->label = $label;
 
         parent::__construct();
 
-        $this->init_hooks();
+        $this->init_hooks( $settings_array );
     }
 
     /**
@@ -44,30 +43,50 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      *
      * Adds filters to:
      *  * `woocommerce_get_settings_{id}` - to get the extended settings
-     *  * `woocommerce_admin_settings_sanitize_option_{option_key}` - to sanitize nested arrays
+     *
+     * @param array $settings_array Array of settings.
      */
-    private function init_hooks() {
+    private function init_hooks( $settings_array ) {
         add_filter( 'woocommerce_get_settings_' . $this->id, array( $this, 'get_extended_settings' ), 20, 2 );
+        $this->settings = $this->parse_settings( $settings_array );
+    }
 
-        foreach ( $this->settings as $section => $data ) {
-            /**
-             * Fuck my life and call me sunshine.
-             *
-             * Due to crazy array nesting, we have the following flow:
-             *  1. We first columnize the `custom_attributes` field from the fields list
-             *  2. We apply null filter
-             *  3. We then get only the values, and merge it so we get a flat map
-             *  4. Then we have the keys.
-             *  5. We then unique them for good measure
-             *
-             *  @var string[] $multiples Array containing all of the custom attribute_keys
-             */
-            $multiples = array_unique( array_keys( array_merge( ...array_values( array_filter( array_column( $data['fields'], 'custom_attributes' ) ) ) ) ) );
+    /**
+     * Get the settings fields
+     *
+     * @param  array  $settings Settings array.
+     * @param  string $section  Section ID.
+     * @return array            Settings fields array.
+     */
+    public function get_extended_settings( array $settings, string $section ): array {
+        $settings = $this->settings[ $section ]['fields'];
+        $nested   = false;
 
-            if ( in_array( 'multiple', $multiples, true ) ) {
-                add_filter( 'woocommerce_admin_settings_sanitize_option_' . $this->get_option_key( $section ), array( $this, 'sanitize_nested_array' ), 99, 3 );
+        foreach ( $settings as $index => $field ) {
+            if ( isset( $field['field_name'] ) ) {
+                continue;
+            }
+            $settings[ $index ]['id'] = $this->get_setting_field_id( $this->get_option_key( $section ), $field );
+
+            if ( str_ends_with( $field['id'], '[]' ) || str_ends_with( $field['field_name'] ?? '', '[]' ) ) {
+                $nested = true;
             }
         }
+
+        if ( $nested ) {
+            add_filter( 'woocommerce_admin_settings_sanitize_option_' . $this->get_option_key( $section ), array( $this, 'sanitize_nested_array' ), 99, 3 );
+        }
+
+        /**
+         * Filters the formated settings for the plugin
+         *
+         * @param array $settings Formated settings array
+         * @param string $section Section ID
+         * @return array Formated settings array
+         *
+         * @since 2.2.0
+         */
+        return apply_filters( "woocommerce_formatted_settings_{$this->id}", $settings, $section );
     }
 
     /**
@@ -122,35 +141,6 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             $field['id'],
             $is_multiselect ? '[]' : ''
         );
-    }
-
-    /**
-     * Get the settings fields
-     *
-     * @param  array  $settings Settings array.
-     * @param  string $section  Section ID.
-     * @return array            Settings fields array.
-     */
-    public function get_extended_settings( array $settings, string $section ): array {
-        $settings = $this->settings[ $section ]['fields'];
-
-        foreach ( $settings as $index => $field ) {
-            if ( isset( $field['field_name'] ) ) {
-                continue;
-            }
-            $settings[ $index ]['id'] = $this->get_setting_field_id( $this->get_option_key( $section ), $field );
-        }
-
-        /**
-         * Filters the formated settings for the plugin
-         *
-         * @param array $settings Formated settings array
-         * @param string $section Section ID
-         * @return array Formated settings array
-         *
-         * @since 2.2.0
-         */
-        return apply_filters( "woocommerce_formatted_settings_{$this->id}", $settings, $section );
     }
 
     /**
