@@ -182,7 +182,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         if ( isset( $args['return'] ) ) {
             switch ( $args['return'] ) {
                 case 'ids':
-                    $callback = 'get_col';
+                    $callback = 1 === $args['per_page'] ? 'get_var' : 'get_col';
                     $fields   = 'ID';
                     break;
                 default:
@@ -205,7 +205,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      *
      * @param  array  $args        Query arguments.
      * @param  string $clause_join SQL join clause. Can be AND or OR.
-     * @return object[]            Array of entities.
+     * @return int|object|null     Entity ID or object. Null if not found.
      */
     public function get_entity( $args = array(), $clause_join = 'AND' ) {
         $args = array_merge(
