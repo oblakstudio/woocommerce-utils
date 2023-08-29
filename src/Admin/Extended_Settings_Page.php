@@ -30,25 +30,32 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @param array  $settings_array Array of settings.
      */
     public function __construct( string $id, string $label, array $settings_array ) {
-        $this->id    = $id;
-        $this->label = $label;
+        $this->id       = $id;
+        $this->label    = $label;
+        $this->settings = $this->parse_settings( $settings_array );
 
         parent::__construct();
 
-        $this->init_hooks( $settings_array );
+        add_filter( 'woocommerce_get_settings_' . $this->id, array( $this, 'get_raw_settings' ), 0, 2 );
     }
 
     /**
-     * Initializes settings hooks.
+     * Get the raw settings array
      *
-     * Adds filters to:
-     *  * `woocommerce_get_settings_{id}` - to get the extended settings
-     *
-     * @param array $settings_array Array of settings.
+     * @param  array  $settings Settings array.
+     * @param  string $section  Section ID.
+     * @return array            Raw settings array.
      */
-    private function init_hooks( $settings_array ) {
-        add_filter( 'woocommerce_get_settings_' . $this->id, array( $this, 'get_extended_settings' ), 20, 2 );
-        $this->settings = $this->parse_settings( $settings_array );
+    public function get_raw_settings( array $settings, string $section ): array {
+        if ( ! array_key_exists( $section, $this->settings ) ) {
+            return $settings;
+        }
+
+        // Filters get added only when needed.
+        add_filter( 'woocommerce_get_settings_' . $this->id, array( $this, 'get_extended_settings' ), 10, 2 );
+        add_action( 'woocommerce_settings_save_' . $this->id, array( $this, 'prepare_settings_cleanup' ), 1, 1 );
+
+        return $this->settings[ $section ]['fields'];
     }
 
     /**
@@ -59,8 +66,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @return array            Settings fields array.
      */
     public function get_extended_settings( array $settings, string $section ): array {
-        $settings = $this->settings[ $section ]['fields'];
-        $nested   = false;
+        $nested = false;
 
         foreach ( $settings as $index => $field ) {
             if ( isset( $field['field_name'] ) ) {
@@ -96,16 +102,6 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @return array           Parsed settings array.
      */
     final protected function parse_settings( array $settings ): array {
-        /**
-         * Filter the settings array
-         *
-         * @param  array $settings Base settings array
-         * @return array Settings array
-         *
-         * @since 1.0.0
-         */
-        $settings = apply_filters( "woocommerce_raw_settings_{$this->id}", $settings );
-
         uasort(
             $settings,
             function ( $a, $b ) {
@@ -170,5 +166,40 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         }
 
         return array_filter( array_map( $option['sanitize'] ?? 'wc_clean', array_filter( $raw_value ) ) );
+    }
+
+    /**
+     * Cleans up the settings array.
+     *
+     * Removes all the settings that are not in the POST request.
+     * They can be old settings, or deprecated settings.
+     */
+    public function prepare_settings_cleanup() {
+        if ( ! check_admin_referer( 'woocommerce-settings' ) ) {
+            return;
+        }
+
+        $post = wc_clean( wp_unslash( $_POST ) );
+        $get  = wc_clean( wp_unslash( $_GET ) );
+
+        if ( $get['tab'] !== $this->id || empty( $post ) ) {
+            return;
+        }
+        $section = '' === ( $get['section'] ?? '' ) ? 'general' : $get['section'];
+
+        $option_key   = $this->get_option_key( $section );
+        $old_settings = get_option( $option_key );
+        $new_settings = array();
+        foreach ( array_keys( $old_settings ) as $key ) {
+            if ( in_array( $key, array_keys( $post ), true ) ) {
+                $new_settings[ $key ] = $old_settings[ $key ];
+            }
+        }
+
+        if ( $new_settings === $old_settings ) {
+            return;
+        }
+
+        update_option( $option_key, $new_settings );
     }
 }

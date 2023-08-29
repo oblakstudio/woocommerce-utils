@@ -26,11 +26,9 @@ trait Settings_Helper {
      * @return array                 The settings array.
      */
     protected function load_settings( string $prefix, array $raw_settings, $default_value ): array {
-        // Documented in Extended_Settings_Page.php.
-        $raw_settings = apply_filters( "woocommerce_raw_settings_{$prefix}", $raw_settings );
-        $defaults     = $this->get_defaults( $raw_settings, $default_value );
-        $settings     = array();
-        $option_key   = $prefix . '_settings_';
+        $defaults   = $this->get_defaults( $raw_settings, $default_value );
+        $settings   = array();
+        $option_key = $prefix . '_settings_';
 
         foreach ( $defaults as $section => $default_values ) {
             $section_settings     = wp_parse_args(
@@ -40,10 +38,6 @@ trait Settings_Helper {
             $settings[ $section ] = array();
 
             foreach ( $section_settings as $raw_key => $raw_value ) {
-                if ( ! in_array( $raw_key, array_keys( $default_values ), true ) ) {
-                    continue;
-                }
-
                 $value = in_array( $raw_value, array( 'yes', 'no' ), true ) ? ( 'yes' === $raw_value ) : $raw_value;
 
                 if ( str_contains( $raw_key, '-' ) ) {
@@ -78,7 +72,7 @@ trait Settings_Helper {
             $section_data = array();
 
             foreach ( $data['fields'] as $field ) {
-                if ( in_array( $field['type'], array( 'title', 'sectionend' ), true ) ) {
+                if ( in_array( $field['type'], array( 'title', 'sectionend', 'info' ), true ) ) {
                     continue;
                 }
 
