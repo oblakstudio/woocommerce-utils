@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.11.0...v1.11.1) (2023-08-31)
+
+
+### Bug Fixes
+
+* Fixed settings cleanup ([c9fcc22](https://github.com/oblakstudio/woocommerce-utils/commit/c9fcc22861cad1b8f261c076e5c98450148145fa))
+
 # [1.11.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.10.0...v1.11.0) (2023-08-29)
 
 
