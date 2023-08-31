@@ -185,12 +185,12 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         if ( $get['tab'] !== $this->id || empty( $post ) ) {
             return;
         }
-        $section = '' === ( $get['section'] ?? '' ) ? 'general' : $get['section'];
-
+        $section      = '' === ( $get['section'] ?? '' ) ? 'general' : $get['section'];
         $option_key   = $this->get_option_key( $section );
         $old_settings = get_option( $option_key );
         $new_settings = array();
-        foreach ( array_keys( $old_settings ) as $key ) {
+
+        foreach ( is_array( $old_settings ) ? array_keys( $old_settings ) : false as $key ) {
             if ( in_array( $key, array_keys( $post ), true ) ) {
                 $new_settings[ $key ] = $old_settings[ $key ];
             }
