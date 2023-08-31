@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.13.0...v1.14.0) (2023-08-31)
+
+
+### Features
+
+* Fixed dynamic section handling ([f7eb0f0](https://github.com/oblakstudio/woocommerce-utils/commit/f7eb0f051b16ee96da7578d461edd5114be673fe))
+
 # [1.13.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.12.0...v1.13.0) (2023-08-31)
 
 
