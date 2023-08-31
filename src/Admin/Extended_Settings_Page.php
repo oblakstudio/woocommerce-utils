@@ -150,7 +150,15 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             $sections[ $section ] = $data['section_name'];
         }
 
-        return $sections;
+        /**
+         * Allows to add custom sections to the extended settings page
+         *
+         * @param array $sections Array of sections
+         * @return array Array of sections
+         *
+         * @since 1.12.0
+         */
+        return apply_filters( "woocommerce_get_extended_sections_{$this->id}", $sections );
     }
 
     /**
