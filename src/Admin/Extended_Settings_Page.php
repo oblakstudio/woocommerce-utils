@@ -47,7 +47,18 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
      * @return array            Raw settings array.
      */
     public function get_raw_settings( array $settings, string $section ): array {
-        if ( ! array_key_exists( $section, $this->settings ) ) {
+        $do_section = array_key_exists( $section, $this->settings );
+
+        /**
+         * Dynamically turn on / off sections
+         *
+         * @param  bool   $do_section Whether to show the section or not.
+         * @param  string $section    Section ID.
+         * @return bool               Whether to show the section or not.
+         *
+         * @since 1.13.0
+         */
+        if ( ! apply_filters( "woocommerce_extended_settings_section_{$this->id}", $do_section, $section ) ) {
             return $settings;
         }
 
@@ -56,6 +67,28 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         add_action( 'woocommerce_settings_save_' . $this->id, array( $this, 'prepare_settings_cleanup' ), 1, 1 );
 
         return $this->settings[ $section ]['fields'];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    final public function get_own_sections() {
+        foreach ( $this->settings as $section => $data ) {
+            if ( ! $data['enabled'] ) {
+                continue;
+            }
+            $sections[ $section ] = $data['section_name'];
+        }
+
+        /**
+         * Allows to add custom sections to the extended settings page
+         *
+         * @param array $sections Array of sections
+         * @return array Array of sections
+         *
+         * @since 1.12.0
+         */
+        return apply_filters( "woocommerce_get_extended_sections_{$this->id}", $sections );
     }
 
     /**
@@ -137,28 +170,6 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             $field['id'],
             $is_multiselect ? '[]' : ''
         );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    final public function get_own_sections() {
-        foreach ( $this->settings as $section => $data ) {
-            if ( ! $data['enabled'] ) {
-                continue;
-            }
-            $sections[ $section ] = $data['section_name'];
-        }
-
-        /**
-         * Allows to add custom sections to the extended settings page
-         *
-         * @param array $sections Array of sections
-         * @return array Array of sections
-         *
-         * @since 1.12.0
-         */
-        return apply_filters( "woocommerce_get_extended_sections_{$this->id}", $sections );
     }
 
     /**
