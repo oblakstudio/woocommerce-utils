@@ -66,7 +66,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
         add_filter( 'woocommerce_get_settings_' . $this->id, array( $this, 'get_extended_settings' ), 10, 2 );
         add_action( 'woocommerce_settings_save_' . $this->id, array( $this, 'prepare_settings_cleanup' ), 1, 1 );
 
-        return $this->settings[ $section ]['fields'];
+        return $this->settings[ $section ]['fields'] ?? array();
     }
 
     /**
