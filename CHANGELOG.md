@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.11.1...v1.12.0) (2023-08-31)
+
+
+### Features
+
+* Added section filter to ESP ([3e27c5b](https://github.com/oblakstudio/woocommerce-utils/commit/3e27c5bfa3aa3863e8cf91e9a28aa16d5f7308c0))
+
 ## [1.11.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.11.0...v1.11.1) (2023-08-31)
 
 
