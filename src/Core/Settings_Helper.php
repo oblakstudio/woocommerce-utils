@@ -30,7 +30,8 @@ trait Settings_Helper {
         $settings   = array();
         $option_key = $prefix . '_settings_';
 
-        foreach ( $defaults as $section => $default_values ) {
+        foreach ( $this->get_registered_sections( $option_key ) as $section ) {
+            $default_values       = $defaults[ $section ] ?? array();
             $section_settings     = wp_parse_args(
                 get_option( $option_key . $section, array() ),
                 $default_values
@@ -57,6 +58,33 @@ trait Settings_Helper {
         }
 
         return $settings;
+    }
+
+    /**
+     * Get the settings section from the database
+     *
+     * This function was added because of the dynamic sections
+     *
+     * @param  string $option_key The option key base.
+     * @return string[]             The registered sections.
+     */
+    protected function get_registered_sections( $option_key ) {
+        global $wpdb;
+
+        $like     = $wpdb->esc_like( $option_key ) . '%';
+        $sections = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
+                $like
+            )
+        );
+
+        return array_map(
+            function ( $section ) use( $option_key ) {
+                return str_replace( $option_key, '', $section );
+            },
+            $sections
+        );
     }
 
     /**
