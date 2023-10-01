@@ -1,3 +1,10 @@
+## [1.15.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.0...v1.15.1) (2023-10-01)
+
+
+### Bug Fixes
+
+* Fixed SQL escape on query clause ([e8a0a53](https://github.com/oblakstudio/woocommerce-utils/commit/e8a0a53c849279cb603fd2ceab1190a1ae90d74c))
+
 # [1.15.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.14.1...v1.15.0) (2023-10-01)
 
 
