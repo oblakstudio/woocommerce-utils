@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.14.1...v1.15.0) (2023-10-01)
+
+
+### Features
+
+* Implemented singleton trait ([36f8602](https://github.com/oblakstudio/woocommerce-utils/commit/36f86028778e1762b1738111da64c9a25b703c05))
+
 ## [1.14.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.14.0...v1.14.1) (2023-09-01)
 
 
