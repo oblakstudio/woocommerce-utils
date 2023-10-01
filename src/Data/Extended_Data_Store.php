@@ -276,7 +276,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $left_wildcard  = strpos( $value, '%' ) === 0 ? '%' : '';
         $right_wildcard = strrpos( $value, '%' ) === strlen( $value ) - 1 ? '%' : '';
 
-        $value = trim( $value, '%' );
+        $value = trim( esc_sql( $value ), '%' );
 
         if ( $left_wildcard || $right_wildcard ) {
             $value = $wpdb->esc_like( $value );
