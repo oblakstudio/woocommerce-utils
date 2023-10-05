@@ -72,7 +72,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
     /**
      * {@inheritDoc}
      */
-    final public function get_own_sections() {
+    public function get_own_sections() {
         foreach ( $this->settings as $section => $data ) {
             if ( ! $data['enabled'] ) {
                 continue;
