@@ -1,3 +1,10 @@
+## [1.15.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.1...v1.15.2) (2023-10-05)
+
+
+### Bug Fixes
+
+* Removed final from get_own_sections ([a607ed6](https://github.com/oblakstudio/woocommerce-utils/commit/a607ed657eea051533ade3de16618074c3792d39))
+
 ## [1.15.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.0...v1.15.1) (2023-10-01)
 
 
