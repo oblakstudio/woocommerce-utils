@@ -72,7 +72,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
     /**
      * {@inheritDoc}
      */
-    public function get_own_sections() {
+    final public function get_own_sections() {
         foreach ( $this->settings as $section => $data ) {
             if ( ! $data['enabled'] ) {
                 continue;
@@ -80,15 +80,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             $sections[ $section ] = $data['section_name'];
         }
 
-        /**
-         * Allows to add custom sections to the extended settings page
-         *
-         * @param array $sections Array of sections
-         * @return array Array of sections
-         *
-         * @since 1.12.0
-         */
-        return apply_filters( "woocommerce_get_extended_sections_{$this->id}", $sections );
+        return $sections;
     }
 
     /**
@@ -184,7 +176,7 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             return $value;
         }
 
-        return array_filter( array_map( $option['sanitize'] ?? 'wc_clean', array_filter( $raw_value ) ) );
+        return array_filter( array_map( $option['sanitize'] ?? 'wc_clean', array_filter( $raw_value ?? array() ) ) );
     }
 
     /**
