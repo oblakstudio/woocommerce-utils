@@ -99,7 +99,13 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             }
             $settings[ $index ]['id'] = $this->get_setting_field_id( $this->get_option_key( $section ), $field );
 
-            if ( str_ends_with( $field['id'], '[]' ) || str_ends_with( $field['field_name'] ?? '', '[]' ) ) {
+            if (
+                str_ends_with( $field['id'], '[]' ) ||
+                str_ends_with( $field['field_name'] ?? '', '[]' ) ||
+                array_key_exists( 'multiple', $field['custom_attributes'] ?? array() ) ||
+                'multiselect' === $field['type'] ||
+                true === ( $field['nested'] ?? false )
+            ) {
                 $nested = true;
             }
         }
