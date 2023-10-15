@@ -8,7 +8,7 @@
 /**
  * Product variation class.
  */
-interface WC_Product_Variable_Interface extends WC_Product_Simple_Interface {
+interface WC_Product_Variation_Interface extends WC_Product_Simple_Interface {
     /**
 	 * Override the default constructor to set custom defaults.
 	 *
