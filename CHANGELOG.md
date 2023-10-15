@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.0...v1.16.1) (2023-10-15)
+
+
+### Bug Fixes
+
+* Fixed interface name ([ed6d955](https://github.com/oblakstudio/woocommerce-utils/commit/ed6d955c811e9c801f12abcb704fbe02df57b557))
+
 # [1.16.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.4...v1.16.0) (2023-10-15)
 
 
