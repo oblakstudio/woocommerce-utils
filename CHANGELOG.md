@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.4...v1.16.0) (2023-10-15)
+
+
+### Features
+
+* Implemented product interfaces ([01cccb8](https://github.com/oblakstudio/woocommerce-utils/commit/01cccb8521b090fcb93c6a161733fef29088d9b9))
+
 ## [1.15.4](https://github.com/oblakstudio/woocommerce-utils/compare/v1.15.3...v1.15.4) (2023-10-06)
 
 
