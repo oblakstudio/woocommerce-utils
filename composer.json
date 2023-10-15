@@ -12,7 +12,8 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Oblak\\WooCommerce\\": "src"
+            "Oblak\\WooCommerce\\": "src",
+            "\\": "src/Interfaces/Shared"
         }
     },
     "require": {
