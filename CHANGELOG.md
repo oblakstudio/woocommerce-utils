@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.1...v1.16.2) (2023-10-16)
+
+
+### Bug Fixes
+
+* Fixed settings helper default values ([f55db28](https://github.com/oblakstudio/woocommerce-utils/commit/f55db286ec231f43d640907da552435e8b807979))
+
 ## [1.16.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.0...v1.16.1) (2023-10-15)
 
 
