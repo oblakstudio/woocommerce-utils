@@ -30,7 +30,7 @@ trait Settings_Helper {
         $settings   = array();
         $option_key = $prefix . '_settings_';
 
-        foreach ( $this->get_registered_sections( $option_key ) as $section ) {
+        foreach ( $this->get_registered_sections( $option_key, array_keys( $defaults ) ) as $section ) {
             $default_values       = $defaults[ $section ] ?? array();
             $section_settings     = wp_parse_args(
                 get_option( $option_key . $section, array() ),
@@ -39,7 +39,9 @@ trait Settings_Helper {
             $settings[ $section ] = array();
 
             foreach ( $section_settings as $raw_key => $raw_value ) {
-                $value = in_array( $raw_value, array( 'yes', 'no' ), true ) ? ( 'yes' === $raw_value ) : $raw_value;
+                $value = in_array( $raw_value, array( 'yes', 'no' ), true )
+                    ? ( 'yes' === $raw_value )
+                    : $raw_value;
 
                 if ( str_contains( $raw_key, '-' ) ) {
                     $keys = explode( '-', $raw_key );
@@ -65,10 +67,11 @@ trait Settings_Helper {
      *
      * This function was added because of the dynamic sections
      *
-     * @param  string $option_key The option key base.
-     * @return string[]             The registered sections.
+     * @param  string   $option_key       The option key base.
+     * @param  string[] $default_sections The default sections.
+     * @return string[]                   The registered sections.
      */
-    protected function get_registered_sections( $option_key ) {
+    protected function get_registered_sections( $option_key, $default_sections ) {
         global $wpdb;
 
         $like     = $wpdb->esc_like( $option_key ) . '%';
@@ -79,11 +82,16 @@ trait Settings_Helper {
             )
         );
 
-        return array_map(
-            function ( $section ) use( $option_key ) {
-                return str_replace( $option_key, '', $section );
-            },
-            $sections
+        return array_unique(
+            array_merge(
+                array_map(
+                    function ( $section ) use( $option_key ) {
+                        return str_replace( $option_key, '', $section );
+                    },
+                    $sections
+                ),
+                $default_sections
+            )
         );
     }
 
