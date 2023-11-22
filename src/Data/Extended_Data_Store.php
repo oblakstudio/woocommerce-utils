@@ -19,6 +19,13 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
 
     /**
+     * Field name used for object IDs
+     *
+     * @var string
+     */
+    protected $object_id_field = 'ID';
+
+    /**
      * Data stored in meta keys, but not  considered meta
      *
      * @since 2.0.1
@@ -167,7 +174,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $defaults = array(
             'per_page' => 20,
             'page'     => 1,
-            'orderby'  => 'ID',
+            'orderby'  => $this->object_id_field,
             'order'    => 'DESC',
         );
         $fields   = '*';
