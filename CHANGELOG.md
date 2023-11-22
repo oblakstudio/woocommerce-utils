@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.2...v1.17.0) (2023-11-22)
+
+
+### Features
+
+* EDS implementation for custom meta ([e9c2ca9](https://github.com/oblakstudio/woocommerce-utils/commit/e9c2ca9d2420f387dfee3d0b5b34df0198f98d5c))
+
 ## [1.16.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.1...v1.16.2) (2023-10-16)
 
 
