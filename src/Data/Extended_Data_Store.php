@@ -190,7 +190,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             switch ( $args['return'] ) {
                 case 'ids':
                     $callback = 1 === $args['per_page'] ? 'get_var' : 'get_col';
-                    $fields   = 'ID';
+                    $fields   = $this->object_id_field;
                     break;
                 default:
                     $fields = $args['return'];
