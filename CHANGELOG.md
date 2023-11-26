@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.17.0...v1.17.1) (2023-11-23)
+
+
+### Bug Fixes
+
+* Fixed object ID field for EDS ([46a3c17](https://github.com/oblakstudio/woocommerce-utils/commit/46a3c17d5b05ac07b8ba3ac492b8771c095535ad))
+
 # [1.17.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.16.2...v1.17.0) (2023-11-22)
 
 
