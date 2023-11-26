@@ -5,7 +5,7 @@
  * @package  WooCommerce Utils
  */
 
-namespace Oblak\Unior\WooCommerce\Data;
+namespace Oblak\WooCommerce\Data;
 
 use Exception;
 use Oblak\WooCommerce\Data\Extended_Data_Store;

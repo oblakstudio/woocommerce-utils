@@ -5,7 +5,7 @@
  * @package  WooCommerce Utils
  */
 
-namespace Oblak\Unior\WooCommerce\Data;
+namespace Oblak\WooCommerce\Data;
 
 use WC_Data;
 use WC_Product_Attribute;
