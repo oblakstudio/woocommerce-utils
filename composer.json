@@ -14,7 +14,10 @@
         "psr-4": {
             "Oblak\\WooCommerce\\": "src",
             "\\": "src/Interfaces/Shared"
-        }
+        },
+        "files": [
+            "src/Utils/woocommerce-utils-functions.php"
+        ]
     },
     "require": {
         "php": ">= 7.4"
