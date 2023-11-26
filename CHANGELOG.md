@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.17.1...v1.18.0) (2023-11-26)
+
+
+### Features
+
+* Initial ATDS implementation ([32c1fbb](https://github.com/oblakstudio/woocommerce-utils/commit/32c1fbb8937ae15b597e68bce8b5706c55a75e09))
+
 ## [1.17.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.17.0...v1.17.1) (2023-11-23)
 
 
