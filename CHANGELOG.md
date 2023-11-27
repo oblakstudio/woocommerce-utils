@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.0...v1.18.1) (2023-11-26)
+
+
+### Bug Fixes
+
+* ATDS namespace fix ([5787b2e](https://github.com/oblakstudio/woocommerce-utils/commit/5787b2e7f8fb88314ddfd245764ce0d7adca56eb))
+
 # [1.18.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.17.1...v1.18.0) (2023-11-26)
 
 
