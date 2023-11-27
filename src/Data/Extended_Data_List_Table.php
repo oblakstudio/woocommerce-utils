@@ -268,6 +268,10 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
             $items = $this->items;
         }
 
+        if ( ! is_array( $items ) ) {
+            $items = array( $items );
+        }
+
         foreach ( $items as $item ) {
             global ${$this->row_variable};
 
