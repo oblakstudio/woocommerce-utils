@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.1...v1.18.2) (2023-11-27)
+
+
+### Bug Fixes
+
+* **EDSL:** Entity count option saving ([5c3a17f](https://github.com/oblakstudio/woocommerce-utils/commit/5c3a17f397715ec9e2a09915ddd1459a284fea78))
+
 ## [1.18.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.0...v1.18.1) (2023-11-26)
 
 
