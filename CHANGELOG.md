@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.2...v1.19.0) (2023-11-30)
+
+
+### Features
+
+* Added localization for default column ([1ce532c](https://github.com/oblakstudio/woocommerce-utils/commit/1ce532ca08f775c6376cf6b8d6f6e1c7f724ae58))
+
 ## [1.18.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.1...v1.18.2) (2023-11-27)
 
 
