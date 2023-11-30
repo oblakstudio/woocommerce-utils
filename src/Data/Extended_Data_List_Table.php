@@ -328,6 +328,10 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
     public function column_default( $item, $column_name ) {
         global ${$this->row_variable};
 
+        if ( method_exists( ${$this->row_variable}, "get_localized_$column_name" ) ) {
+            return ${$this->row_variable}->{"get_localized_$column_name"}();
+        }
+
         return ${$this->row_variable}->{"get_$column_name"}();
     }
 
