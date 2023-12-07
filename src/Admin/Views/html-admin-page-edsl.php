@@ -8,8 +8,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$active_type = wc_clean( wp_unslash( $_REQUEST['active'] ?? 'all' ) ); //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
 $this->table->process_bulk_actions();
 ?>
 
@@ -41,18 +39,9 @@ $this->table->process_bulk_actions();
             <div id="post-body-content">
                 <div class="meta-box-sortables ui-sortable">
                     <form method="GET">
-                        <input type="hidden" name="post_type" value="product">
-                        <input type="hidden" name="page" value="woosync-supplier-map">
                         <?php
+                        $this->table->extra_inputs();
                         $this->table->views();
-                        ?>
-                        <input
-                            type="hidden"
-                            name="active"
-                            class="post_status_page"
-                            value="<?php echo esc_attr( $active_type ); ?>"
-                        >
-                        <?php
                         $this->table->prepare_items();
                         $this->table->display();
                         ?>

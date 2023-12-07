@@ -137,6 +137,37 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
     abstract protected function get_row_actions();
 
     /**
+     * Extra inputs used when displaying the table on subpage of another page
+     */
+    public function extra_inputs() {
+        $get          = wc_clean( wp_unslash( $_GET ) );
+        $input_string = '<input type="hidden" name="%s" value="%s">';
+
+        if ( str_contains( $this->get_base_url(), 'post_type' ) && ! empty( $get['post_type'] ?? '' ) ) {
+            printf(
+                wp_kses_post( $input_string ),
+                'post_type',
+                esc_attr( $get['post_type'] )
+            );
+        }
+
+        if ( str_contains( $this->get_base_url(), 'page' ) && ! empty( $get['page'] ?? '' ) ) {
+            printf(
+                wp_kses_post( $input_string ),
+                'page',
+                esc_attr( $get['page'] )
+            );
+        }
+
+        printf(
+            wp_kses_post( $input_string ),
+            'active',
+            esc_attr( $get['active'] ),
+        );
+    }
+
+
+    /**
      * Undocumented function
      */
     public function get_views() {

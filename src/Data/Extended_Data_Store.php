@@ -17,6 +17,15 @@ use WC_Object_Data_Store_Interface;
  */
 abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
+    /**
+     * By default, the table prefix is null.
+     * This means that it will be set by default to the base `WC_Data_Store_WP` prefix which is `woocommerce_`
+     *
+     * Change this if you want to have a different prefix for your table. For instance `wc_`
+     *
+     * @var string|null
+     */
+    protected ?string $table_prefix = null;
 
     /**
      * Field name used for object IDs
@@ -47,6 +56,12 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      */
     protected $meta_key_to_props = array();
 
+    /**
+     * Term props
+     *
+     * @var array
+     */
+    protected $term_props = array();
     /**
      * Boolean props
      *
@@ -83,6 +98,26 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     abstract protected function get_searchable_columns();
 
     /**
+	 * Get and store terms from a taxonomy.
+	 *
+	 * @param  WC_Data|integer $obj      WC_Data object or object ID.
+	 * @param  string          $taxonomy Taxonomy name e.g. product_cat.
+	 * @return array of terms
+	 */
+	protected function get_term_ids( $obj, $taxonomy ) {
+		if ( is_numeric( $obj ) ) {
+			$object_id = $obj;
+		} else {
+			$object_id = $obj->get_id();
+		}
+		$terms = wp_get_object_terms( $object_id, $taxonomy );
+		if ( false === $terms || is_wp_error( $terms ) ) {
+			return array();
+		}
+		return wp_list_pluck( $terms, 'term_id' );
+	}
+
+    /**
      * Reads the entity data from the database.
      *
      * @param WC_Data $the_object Object.
@@ -97,6 +132,10 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         foreach ( $this->meta_key_to_props as $meta_key => $prop ) {
             $meta_value         = isset( $meta_values[ $meta_key ][0] ) ? $meta_values[ $meta_key ][0] : null;
             $set_props[ $prop ] = maybe_unserialize( $meta_value ); // get_post_meta only unserializes single values.
+        }
+
+        foreach ( $this->term_props as $term_prop => $taxonomy ) {
+            $set_props[ $term_prop ] = $this->get_term_ids( $the_object, $taxonomy );
         }
 
         $the_object->set_props( $set_props );
@@ -123,6 +162,35 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             }
 
             $updated = $this->update_or_delete_entity_meta( $the_object, $meta_key, $value );
+        }
+    }
+
+    /**
+     * For all stored terms in all taxonomies save them to the DB.
+     *
+     * @param WC_Data $the_object Data Object.
+     * @param bool    $force  Force update. Used during create.
+     */
+    protected function update_terms( &$the_object, $force = false ) {
+        $changes = $the_object->get_changes();
+        $props   = $this->term_props;
+
+        // If we don't have term props or there are no changes, and we're not forcing an update, return.
+        if ( empty( $props ) || ( empty( array_intersect_key( $changes, $props ) ) && ! $force ) ) {
+            return;
+        }
+
+        foreach ( $props as $term_prop => $taxonomy ) {
+            $terms = $the_object->{"get_$term_prop"}( 'edit' );
+
+            if ( empty( $terms ) ) {
+                continue;
+            }
+
+            $terms = is_array( $terms ) ? $terms : array( $terms );
+
+            wp_set_object_terms( $the_object->get_id(), $terms, $taxonomy, false );
+
         }
     }
 
@@ -293,4 +361,41 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         return "LIKE '{$escaped_like}'";
     }
+
+    /**
+	 * Table structure is slightly different between meta types, this function will return what we need to know.
+	 *
+	 * @since  3.0.0
+	 * @return array Array elements: table, object_id_field, meta_id_field
+	 */
+	protected function get_db_info() {
+		global $wpdb;
+
+		$meta_id_field = 'meta_id'; // for some reason users calls this umeta_id so we need to track this as well.
+		$table         = $wpdb->prefix;
+
+		// If we are dealing with a type of metadata that is not a core type, the table should be prefixed.
+		if ( ! in_array( $this->meta_type, array( 'post', 'user', 'comment', 'term' ), true ) ) {
+			$table .= $this->table_prefix ?? 'woocommerce_';
+		}
+
+		$table          .= $this->meta_type . 'meta';
+		$object_id_field = $this->meta_type . '_id';
+
+		// Figure out our field names.
+		if ( 'user' === $this->meta_type ) {
+			$meta_id_field = 'umeta_id';
+			$table         = $wpdb->usermeta;
+		}
+
+		if ( ! empty( $this->object_id_field_for_meta ) ) {
+			$object_id_field = $this->object_id_field_for_meta;
+		}
+
+		return array(
+			'table'           => $table,
+			'object_id_field' => $object_id_field,
+			'meta_id_field'   => $meta_id_field,
+		);
+	}
 }
