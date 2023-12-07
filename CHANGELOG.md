@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.19.0...v1.19.1) (2023-12-07)
+
+
+### Bug Fixes
+
+* QoL fixes ([2bdabef](https://github.com/oblakstudio/woocommerce-utils/commit/2bdabef39ce8a436627d6a3d7be363267a25006f))
+
 # [1.19.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.18.2...v1.19.0) (2023-11-30)
 
 
