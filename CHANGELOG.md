@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.19.1...v1.20.0) (2023-12-09)
+
+
+### Features
+
+* Implemeted Filter Manager ([266de1c](https://github.com/oblakstudio/woocommerce-utils/commit/266de1c2ee4ee2986413aae15fe7f9f7beab0ad4))
+
 ## [1.19.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.19.0...v1.19.1) (2023-12-07)
 
 
