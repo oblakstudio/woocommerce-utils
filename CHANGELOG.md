@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.0...v1.20.1) (2023-12-27)
+
+
+### Bug Fixes
+
+* Fixed list table base params ([7b58ac4](https://github.com/oblakstudio/woocommerce-utils/commit/7b58ac4a3935ee41a9d1a2820df64586fbe626de))
+
 # [1.20.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.19.1...v1.20.0) (2023-12-09)
 
 
