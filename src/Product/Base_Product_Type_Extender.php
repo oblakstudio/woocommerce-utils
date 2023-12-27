@@ -118,7 +118,7 @@ abstract class Base_Product_Type_Extender {
             return $classname;
         }
 
-        return $this->get_product_types()[ $product_type ]['class'];
+        return $this->get_product_types()[ $product_type ]['class'] ?? $classname;
     }
 
     /**
@@ -141,7 +141,8 @@ abstract class Base_Product_Type_Extender {
                     ' ',
                     array_map(
                         function ( $type ) {
-                            return "show_if_{$type}"; },
+                            return "show_if_{$type}";
+                        },
                         $option['for']
                     )
                 ),
@@ -228,7 +229,7 @@ abstract class Base_Product_Type_Extender {
      * Adds custom css needed for the custom product tab icons to work
      */
     public function add_custom_product_css() {
-        if ( empty( $this->get_product_types() ) || empty( $this->get_product_options() ) ) {
+        if ( empty( $this->get_product_types() ) && empty( $this->get_product_options() ) ) {
             return;
         }
 

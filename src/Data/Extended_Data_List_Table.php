@@ -143,9 +143,10 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
         $get          = wc_clean( wp_unslash( $_GET ) );
         $input_string = '<input type="hidden" name="%s" value="%s">';
 
+        //phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
         if ( str_contains( $this->get_base_url(), 'post_type' ) && ! empty( $get['post_type'] ?? '' ) ) {
             printf(
-                wp_kses_post( $input_string ),
+                $input_string,
                 'post_type',
                 esc_attr( $get['post_type'] )
             );
@@ -153,17 +154,18 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
 
         if ( str_contains( $this->get_base_url(), 'page' ) && ! empty( $get['page'] ?? '' ) ) {
             printf(
-                wp_kses_post( $input_string ),
+                $input_string,
                 'page',
                 esc_attr( $get['page'] )
             );
         }
 
         printf(
-            wp_kses_post( $input_string ),
+            $input_string,
             'active',
             esc_attr( $get['active'] ),
         );
+        //phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
     }
 
 
