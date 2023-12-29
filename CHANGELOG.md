@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.1...v1.20.2) (2023-12-29)
+
+
+### Bug Fixes
+
+* Deps update ([90be3de](https://github.com/oblakstudio/woocommerce-utils/commit/90be3deb2707442eac0786939373a4fd1e0771c5))
+
 ## [1.20.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.0...v1.20.1) (2023-12-27)
 
 
