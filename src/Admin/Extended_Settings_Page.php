@@ -108,6 +108,12 @@ abstract class Extended_Settings_Page extends WC_Settings_Page {
             ) {
                 $nested = true;
             }
+
+            foreach ( $field as $key => $val ) {
+                if ( is_callable( $val ) ) {
+                    $settings[ $index ][ $key ] = $val();
+                }
+            }
         }
 
         if ( $nested ) {

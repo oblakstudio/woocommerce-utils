@@ -106,16 +106,14 @@ trait Settings_Helper {
         $defaults = array();
         foreach ( $settings as $section => $data ) {
             $section_data = array();
+            $section      = '' !== $section ? $section : 'general';
+            $fields       = array_filter( $data['fields'], fn( $f ) => ! in_array( $f['type'], array( 'title', 'sectionend', 'info' ), true ) && ! isset( $f['field_name'] ) );
 
-            foreach ( $data['fields'] as $field ) {
-                if ( in_array( $field['type'], array( 'title', 'sectionend', 'info' ), true ) ) {
-                    continue;
-                }
-
+            foreach ( $fields as $field ) {
                 $section_data[ $field['id'] ] = $field['default'] ?? $default_value;
             }
 
-            $defaults[ '' !== $section ? $section : 'general' ] = $section_data;
+            $defaults[ $section ] = $section_data;
         }
 
         return $defaults;
