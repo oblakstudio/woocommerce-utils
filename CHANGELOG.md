@@ -1,3 +1,11 @@
+# [1.21.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.2...v1.21.0) (2024-01-05)
+
+
+### Features
+
+* Implemented Extended Payment Gateway ([bf0f9a7](https://github.com/oblakstudio/woocommerce-utils/commit/bf0f9a7da9401078f3cfe9ab77135c51122c6832))
+* Improved extended settings performance ([74991b8](https://github.com/oblakstudio/woocommerce-utils/commit/74991b80d358a8d9e7aeb8301d657af02f517c8b))
+
 ## [1.20.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.1...v1.20.2) (2023-12-29)
 
 
