@@ -5,10 +5,9 @@
  * @package Serbian Addons for WooCommerce
  */
 
-namespace Oblak\WCRS\WooCommerce\Gateway;
+namespace Oblak\WooCommerce\Serbian_Addons\Gateway;
 
 use Automattic\Jetpack\Constants;
-
 use WC_Logger;
 use WC_Logger_Interface;
 use WC_Payment_Gateway;
@@ -47,6 +46,8 @@ abstract class Extended_Payment_Gateway extends WC_Payment_Gateway {
         $this->init_form_fields();
         $this->init_settings();
         $this->load_settings();
+
+        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
     }
 
     /**
@@ -110,19 +111,36 @@ abstract class Extended_Payment_Gateway extends WC_Payment_Gateway {
      * Loads settings from the database.
      */
     final protected function load_settings() {
+        foreach ( $this->get_available_settings() as $key => $default ) {
+            $value = $this->get_option( $key, $default );
+            $value = in_array( $value, array( 'yes', 'no' ), true ) ? wc_string_to_bool( $value ) : $value;
+
+            $this->$key = $value;
+        }
+        $this->enabled = wc_bool_to_string( $this->enabled );
+
+        self::$log_enabled[ self::$log_id ] = false;
+    }
+
+    /**
+     * Get available settings.
+     *
+     * @return array
+     */
+    final protected function get_available_settings(): array {
         $settings = array_map(
             fn( $f ) => $f['default'] ?? null,
-            $this->form_fields
+            array_filter( $this->form_fields, fn( $f ) => 'title' !== $f['type'] )
         );
 
         foreach ( $settings as $key => $default ) {
             $value = $this->get_option( $key, $default );
             $value = in_array( $value, array( 'yes', 'no' ), true ) ? wc_string_to_bool( $value ) : $value;
 
-            $this->$key = $value;
+            $settings[ $key ] = $value;
         }
 
-        self::$log_enabled[ self::$log_id ] = false;
+        return $settings;
     }
 
     /**
