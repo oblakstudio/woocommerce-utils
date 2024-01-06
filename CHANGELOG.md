@@ -1,3 +1,10 @@
+## [1.21.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.21.0...v1.21.1) (2024-01-06)
+
+
+### Bug Fixes
+
+* Extended gateway constructor ([758aacc](https://github.com/oblakstudio/woocommerce-utils/commit/758aacc5b5b226ae4f16a9cd28d40a9ac61a5be3))
+
 # [1.21.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.20.2...v1.21.0) (2024-01-05)
 
 
