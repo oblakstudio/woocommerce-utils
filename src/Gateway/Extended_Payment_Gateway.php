@@ -5,7 +5,7 @@
  * @package Serbian Addons for WooCommerce
  */
 
-namespace Oblak\WooCommerce\Serbian_Addons\Gateway;
+namespace Oblak\WooCommerce\Gateway;
 
 use Automattic\Jetpack\Constants;
 use WC_Logger;
