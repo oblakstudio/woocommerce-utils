@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.21.2...v1.22.0) (2024-01-08)
+
+
+### Features
+
+* **API:** Implemented Base REST Server ([3c21ee3](https://github.com/oblakstudio/woocommerce-utils/commit/3c21ee3923e01d3986304d6e40d2a18deed92392))
+
 ## [1.21.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.21.1...v1.21.2) (2024-01-06)
 
 
