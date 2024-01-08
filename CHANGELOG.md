@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.22.0...v1.22.1) (2024-01-08)
+
+
+### Bug Fixes
+
+* Fixed class name ([52d96bc](https://github.com/oblakstudio/woocommerce-utils/commit/52d96bca6fc5d510b76b7524f6bc1f9b06db50d4))
+
 # [1.22.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.21.2...v1.22.0) (2024-01-08)
 
 
