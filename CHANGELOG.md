@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.22.1...v1.23.0) (2024-01-09)
+
+
+### Features
+
+* Implemented Extended Data class ([3febd2f](https://github.com/oblakstudio/woocommerce-utils/commit/3febd2fd4801f98a920f559eed7ea567f419a0d2))
+
 ## [1.22.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.22.0...v1.22.1) (2024-01-08)
 
 
