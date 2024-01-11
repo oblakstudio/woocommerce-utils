@@ -1,3 +1,11 @@
+# [1.24.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.23.0...v1.24.0) (2024-01-11)
+
+
+### Features
+
+* Added Scheduler Trait ([effe118](https://github.com/oblakstudio/woocommerce-utils/commit/effe1180c6e9c32c0505e4eb48e5a26b7ca5bed5))
+* Improved Product Type Extender ([761c29d](https://github.com/oblakstudio/woocommerce-utils/commit/761c29da521769d1255dddd464b085407db241e7))
+
 # [1.23.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.22.1...v1.23.0) (2024-01-09)
 
 
