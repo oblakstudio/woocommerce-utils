@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.0...v1.24.1) (2024-01-11)
+
+
+### Bug Fixes
+
+* Namespace fix ([8512257](https://github.com/oblakstudio/woocommerce-utils/commit/851225795f1c6505d80d2f2a20daef0e1205f7d1))
+
 # [1.24.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.23.0...v1.24.0) (2024-01-11)
 
 
