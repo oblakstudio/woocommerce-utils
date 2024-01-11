@@ -4,8 +4,60 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a6ef0391f50d19efba66f24244f26c3b",
-    "packages": [],
+    "content-hash": "a1c251743721b9001d5ecb5e0e1a067c",
+    "packages": [
+        {
+            "name": "oblak/wp-polyfills",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/oblakstudio/wp-polyfills.git",
+                "reference": "b5444775f32b555b700a3f447dc2da99a5069ea3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/b5444775f32b555b700a3f447dc2da99a5069ea3",
+                "reference": "b5444775f32b555b700a3f447dc2da99a5069ea3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 8.0"
+            },
+            "require-dev": {
+                "oblak/wordpress-coding-standard": "^1"
+            },
+            "suggest": {
+                "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/oblak-polyfill-array.php",
+                    "src/oblak-polyfill-terms.php",
+                    "src/oblak-polyfill-wpfs.php"
+                ],
+                "psr-4": {
+                    "Oblak\\WP\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "Sibin Grasic",
+                    "email": "sibin.grasic@oblak.studio"
+                }
+            ],
+            "description": "Various polyfills for WordPress.",
+            "support": {
+                "issues": "https://github.com/oblakstudio/wp-polyfills/issues",
+                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.1.0"
+            },
+            "time": "2024-01-03T12:46:21+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "dealerdirect/phpcodesniffer-composer-installer",
@@ -592,7 +644,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">= 7.4"
+        "php": ">= 8.0"
     },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"

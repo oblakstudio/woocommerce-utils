@@ -6,7 +6,7 @@
  * @subpackage Product
  */
 
-namespace Oblak\WooCommerce\Product;
+namespace Oblak\WooCommerce\Repo\Core;
 
 /**
  * Enables easy extension of product types.
@@ -14,20 +14,19 @@ namespace Oblak\WooCommerce\Product;
  * @since 1.1.0
  */
 abstract class Base_Product_Type_Extender {
-
     /**
      * Types to remove from the product type selector
      *
      * @var string[]
      */
-    protected $types_to_remove = array();
+    protected array $types_to_remove = array();
 
     /**
      * Options to remove from the options selector
      *
      * @var string[]
      */
-    protected $options_to_remove = array();
+    protected array $options_to_remove = array();
 
     /**
      * Class constructor
@@ -48,28 +47,49 @@ abstract class Base_Product_Type_Extender {
      * Returns the product types array
      *
      * Product type is an array keyed by product type slug, with the following properties:
-     *  * name:  Product type name.
-     *  * class: Product type class name.
-     *  * tabs:  Array of tabs to add to the product type.
+     *  - **name**:     Product type name.
+     *  - **class**:    Product type class name.
+     *  - **tabs**:     Array of tabs to add to the product type.
+     *  - **inherits**: Array of product type slugs from which to inherit the tabs and option visibility
      *
      * @return array
      */
-    abstract protected function get_product_types();
+    protected function get_product_types(): array {
+        return array();
+    }
 
     /**
      * Get the product options array
      *
      * Product option is an array keyed by product option slug, with the following properties:
-     *  * name: Product option name,
-     *  * for: Array of product type slugs for which the option is available.
-     *  * label: Label for the option.
-     *  * description: Description for the option.
-     *  * default: Default value for the option. Can be `yes` or `no`, or a boolean.
-     *  * is_prop: Whether the option is a product property, or a meta data
+     *  - **key**:         Product option key.
+     *  - **label**:       Label for the option.
+     *  - **description**: Description for the option.
+     *  - **for**:         Array of product type slugs for which the option is available.
+     *  - **default**:     Default value for the option. Can be `yes` or `no`, or a boolean.
+     *  - **is_prop**:     Whether the option is a product property, or a meta data
      *
-     * @return array
+     * @return array<string, array<string, mixed>>
      */
-    abstract protected function get_product_options();
+    protected function get_product_options(): array {
+        return array();
+    }
+
+    /**
+     * Get the product data tabs array
+     *
+     * Product tab is an array of arrays with the following properties:
+     *  - **key**:   Product tab key.
+     *  - **id**:    Product tab id.
+     *  - **label**: Label for the tab.
+     *  - **for**:   Array of product type slugs for which the tab is available.
+     *  - **icon**:  Icon for the tab. Can be a Dashicon or a WooCommerce icon.
+     *
+     * @return array<array, array<string, mixed>>
+     */
+    protected function get_product_tabs(): array {
+        return array();
+    }
 
     /**
      * Checks if we're on the product edit page
@@ -90,12 +110,13 @@ abstract class Base_Product_Type_Extender {
      */
     public function add_custom_product_types( $types ) {
         $new_types = array();
+        $to_set    = array_filter(
+            $this->get_product_types(),
+            fn ( $slug ) => ! in_array( $slug, array_keys( $types ), true ) || 'variation' === $slug,
+            ARRAY_FILTER_USE_KEY
+        );
 
-        foreach ( $this->get_product_types() as $slug => $type ) {
-            if ( in_array( $slug, array_keys( $types ), true ) || 'variation' === $slug ) {
-                continue;
-            }
-
+        foreach ( $to_set as $slug => $type ) {
             $new_types[ $slug ] = $type['name'];
 
             if ( ! get_term_by( 'slug', $slug, 'product_type' ) ) {
@@ -103,7 +124,7 @@ abstract class Base_Product_Type_Extender {
             }
         }
 
-        return array_diff_key( array_merge( $types, $new_types ), array_flip( $this->types_to_remove ) );
+        return wp_array_diff_assoc( array_merge( $types, $new_types ), $this->types_to_remove );
     }
 
     /**
@@ -114,10 +135,6 @@ abstract class Base_Product_Type_Extender {
      * @return string               Modified classname.
      */
     public function modify_product_classnames( $classname, $product_type ) {
-        if ( ! isset( $this->get_product_types()[ $product_type ] ) ) {
-            return $classname;
-        }
-
         return $this->get_product_types()[ $product_type ]['class'] ?? $classname;
     }
 
@@ -128,32 +145,23 @@ abstract class Base_Product_Type_Extender {
      * @return array          Modified product options.
      */
     public function add_custom_product_options( $options ) {
-        $new_options = array();
-
-        foreach ( $this->get_product_options() as $slug => $option ) {
-            if ( in_array( $slug, array_keys( $options ), true ) ) {
-                continue;
-            }
-
-            $new_options[ $slug ] = array(
-                'id'            => "_{$slug}",
-                'wrapper_class' => implode(
-                    ' ',
-                    array_map(
-                        function ( $type ) {
-                            return "show_if_{$type}";
-                        },
-                        $option['for']
-                    )
+        $options = array_merge(
+            $options,
+            wp_array_flatmap(
+                array_values( $this->get_product_options() ),
+                fn( $opt ) => array(
+                    $opt['key'] => array(
+                        'id'            => "_{$opt['key']}",
+                        'wrapper_class' => implode( ' ', array_map( fn( $t ) => "show_if_{$t}", $opt['for'] ) ),
+                        'label'         => $opt['label'] ?? $opt['key'],
+                        'description'   => $opt['description'] ?? '',
+                        'default'       => wc_bool_to_string( $opt['default'] ?? false ),
+                    ),
                 ),
-                'label'         => $option['label'],
-                'description'   => $option['description'],
-                'default'       => wc_bool_to_string( $option['default'] ),
-            );
+            )
+        );
 
-        }
-
-        return array_diff_key( array_merge( $options, $new_options ), array_flip( $this->options_to_remove ) );
+        return wp_array_diff_assoc( $options, $this->options_to_remove );
     }
 
     /**
@@ -163,45 +171,40 @@ abstract class Base_Product_Type_Extender {
      * @return array       Modified product data tabs.
      */
     public function add_product_type_data_tabs( $tabs ) {
-        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
-            $type_tabs = $type['tabs'] ?? array();
-
-            foreach ( $type_tabs as $tab_to_add ) {
-                $tab_id          = "{$slug}_{$tab_to_add['id']}";
-                $tabs[ $tab_id ] = array(
-                    'label'    => $tab_to_add['label'],
-                    'target'   => "{$tab_id}-options",
-                    'class'    => "show_if_{$slug}",
-                    'priority' => $tab_to_add['priority'],
-                );
-            }
-        }
-
-        return $tabs;
+        return array_merge(
+            $tabs,
+            wp_array_flatmap(
+                $this->get_product_tabs(),
+                fn( $tab ) => array(
+					( $tab['key'] ?? $tab['id'] ) => array(
+						'label'    => $tab['label'],
+						'target'   => "{$tab['id']}_product_data",
+						'class'    => array_map( fn( $t ) => "show_if_{$t}", $tab['for'] ),
+						'priority' => $tab['priority'] ?? 100,
+					),
+                ),
+            )
+        );
     }
 
     /**
      * Adds the custom product type data panels
      */
     public function add_product_type_data_panels() {
-        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
-            $type_tabs = $type['tabs'] ?? array();
-            foreach ( $type_tabs as $tab_to_add ) {
-                $tab_id = "{$slug}_{$tab_to_add['id']}";
-                ?>
-                <div id="<?php echo esc_attr( "{$tab_id}-options" ); ?>" class="panel woocommerce_options_panel" style="display:none">
-                    <?php
-                    /**
-                     * Display the product type / option data fields
-                     *
-                     * @param string $tab_suffix The tab suffix.
-                     * @since 1.0.0
-                     */
-                    do_action( "woocommerce_product_options_{$slug}", $tab_to_add['id'] );
-                    ?>
-                </div>
-                <?php
-            }
+        foreach ( wp_list_pluck( $this->get_product_tabs(), 'id' ) as $tab ) {
+            printf(
+                '<div id="%s_product_data" class="panel woocommerce_options_panel" style="display: none;">',
+                esc_attr( $tab )
+            );
+
+            /**
+             * Display the product type / option data fields
+             *
+             * @since 1.0.0
+             */
+            do_action( "woocommerce_product_options_{$tab}" );
+
+            echo '</div>';
         }
     }
 
@@ -214,11 +217,10 @@ abstract class Base_Product_Type_Extender {
         foreach ( $this->get_product_options() as $slug => $option ) {
             $option_status = wc_bool_to_string( 'on' === wc_clean( wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ) ); //phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-            if ( $option['is_prop'] ?? false ) {
-                ( $option_status );
+            if ( ( $option['is_prop'] ?? false ) || is_callable( array( $product, "set_{$slug}" ) ) ) {
                 $product->{"set_{$slug}"}( $option_status );
             } else {
-                $product->add_meta_data( $slug, $option_status );
+                $product->update_meta_data( $slug, $option_status );
             }
         }
 
@@ -234,25 +236,24 @@ abstract class Base_Product_Type_Extender {
         }
 
         echo '<' . 'style type="text/css">'; //phpcs:ignore
-        foreach ( array_merge( $this->get_product_types(), $this->get_product_options() ) as $slug => $type ) {
-            if ( empty( $type['tabs'] ) ) {
+        foreach ( $this->get_product_tabs() as $tab ) {
+            if ( ! isset( $tab['icon'] ) ) {
                 continue;
             }
 
-            foreach ( $type['tabs'] as $tab ) {
-                if ( empty( $tab['icon'] ?? '' ) ) {
-                    continue;
-                }
+            $icon_font = str_starts_with( $tab['icon'], 'woo' ) ? 'woocommerce' : 'Dashicons';
+            $icon_str  = str_replace( 'woo:', '', $tab['icon'] );
 
-                printf(
-                    '#woocommerce-product-data ul.wc-tabs li.%s_%s_options a::before { content: "%s"; }%s',
-                    esc_attr( $slug ),
-                    esc_attr( $tab['id'] ),
-                    esc_attr( $tab['icon'] ),
-                    "\n",
-                );
-            }
+            printf(
+                '#woocommerce-product-data ul.wc-tabs li.%1$s_options a::before { content: "%2$s"; font-family: %3$s, sans-serif; }%4$s',
+                esc_attr( $tab['key'] ?? $tab['id'] ),
+                esc_attr( $icon_str ),
+                esc_attr( $icon_font ),
+                "\n",
+            );
+
         }
+
         echo '</style>';
     }
 
@@ -268,37 +269,41 @@ abstract class Base_Product_Type_Extender {
 
         foreach ( $this->get_product_types() as $slug => $type ) {
             $opt_groups[ $slug ] = array(
-                'groups' => $type['show_groups'] ?? array(),
-                'tabs'   => $type['show_tabs'] ?? array(),
+                'groups'   => $type['show_groups'] ?? array(),
+                'tabs'     => $type['show_tabs'] ?? array(),
+                'inherits' => $type['inherits'] ?? array(),
             );
         }
 
-        ?>
-        <script type="text/javascript" id="pte-pt-js">
-            var utilAdditionalTypes = <?php echo wp_json_encode( $opt_groups ); ?>;
+        $opt_groups = wp_json_encode( $opt_groups );
+        echo '<' . 'script>'; //phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
+        echo "var utilAdditionalTypes = {$opt_groups};\n"; //phpcs:ignore
 
-            jQuery(document).ready(() => {
-                for (const[productType, optData] of Object.entries(utilAdditionalTypes)) {
-                    if (optData.groups) {
-                        optData.groups.forEach((group) => {
-                            jQuery(`.options_group.${group}`).addClass(`show_if_${productType}`).show();
-                        });
+        echo <<<'JS'
+        jQuery(document).ready(($) => {
+            for (const[productType, optData] of Object.entries(utilAdditionalTypes)) {
+                optData.groups.forEach((group) => {
+                    $(`.options_group.${group}`).addClass(`show_if_${productType}`).show();
+                });
+
+                optData.tabs.forEach((tab) => {
+                    if (['general', 'inventory'].includes(tab)) {
+                        jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).addClass('show_if_simple').show();
+
+                    } else {
+                        jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).show();
                     }
+                });
 
-                    if (optData.tabs) {
-                        optData.tabs.forEach((tab) => {
-                            if (['general', 'inventory'].includes(tab)) {
-                                jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).addClass('show_if_simple').show();
+                optData.inherits.forEach((parentType) => {
+                    $(`.show_if_${parentType}`).addClass(`show_if_${productType}`).show();
+                    $(`.hide_if_${parentType}`).addClass(`hide_if_${productType}`).hide();
+                })
+            }
+        })
+        JS;
 
-                            } else {
-                                jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).show();
-                            }
-                        });
-                    }
-                }
-            });
-        </script>
-        <?php
+        echo '</script>';
     }
 
     /**
