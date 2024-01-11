@@ -112,7 +112,7 @@ abstract class Base_Product_Type_Extender {
         $new_types = array();
         $to_set    = array_filter(
             $this->get_product_types(),
-            fn ( $slug ) => ! in_array( $slug, array_keys( $types ), true ) || 'variation' === $slug,
+            fn ( $slug ) => ! in_array( $slug, array_keys( $types ), true ) && 'variation' !== $slug,
             ARRAY_FILTER_USE_KEY
         );
 
