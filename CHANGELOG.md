@@ -1,3 +1,10 @@
+## [1.24.3](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.2...v1.24.3) (2024-01-11)
+
+
+### Bug Fixes
+
+* Conditional fix for PTE ([deac361](https://github.com/oblakstudio/woocommerce-utils/commit/deac36115ef7d162461fe5b4b9a6c5b448f6ca32))
+
 ## [1.24.2](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.1...v1.24.2) (2024-01-11)
 
 
