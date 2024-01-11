@@ -6,7 +6,7 @@
  * @subpackage Product
  */
 
-namespace Oblak\WooCommerce\Repo\Core;
+namespace Oblak\WooCommerce\Product;
 
 /**
  * Enables easy extension of product types.
