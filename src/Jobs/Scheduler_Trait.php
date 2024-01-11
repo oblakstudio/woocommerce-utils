@@ -6,7 +6,7 @@
  * @subpackage Jobs
  */
 
-namespace Oblak\WooCommerce\Repo\Jobs;
+namespace Oblak\WooCommerce\Jobs;
 
 use ActionScheduler;
 use ActionScheduler_Action;
