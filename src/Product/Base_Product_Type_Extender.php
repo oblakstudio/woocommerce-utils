@@ -40,7 +40,6 @@ abstract class Base_Product_Type_Extender {
         add_action( 'woocommerce_admin_process_product_object', array( $this, 'set_custom_options_status' ), 99, 1 );
         add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
         add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
-        add_action( 'admin_footer', array( $this, 'add_custom_product_options_js' ), 99, 1 );
     }
 
     /**
@@ -231,20 +230,21 @@ abstract class Base_Product_Type_Extender {
      * Adds custom css needed for the custom product tab icons to work
      */
     public function add_custom_product_css() {
-        if ( empty( $this->get_product_types() ) && empty( $this->get_product_options() ) ) {
+        $tabs = array_filter(
+            $this->get_product_tabs(),
+            fn( $tab ) => isset( $tab['icon'] ),
+        );
+
+        if ( empty( $tabs ) || ! $this->is_product_edit_page() ) {
             return;
         }
 
-        echo '<' . 'style type="text/css">'; //phpcs:ignore
-        foreach ( $this->get_product_tabs() as $tab ) {
-            if ( ! isset( $tab['icon'] ) ) {
-                continue;
-            }
-
+        $css = '';
+        foreach ( $tabs as $tab ) {
             $icon_font = str_starts_with( $tab['icon'], 'woo' ) ? 'woocommerce' : 'Dashicons';
             $icon_str  = str_replace( 'woo:', '', $tab['icon'] );
 
-            printf(
+            $css .= sprintf(
                 '#woocommerce-product-data ul.wc-tabs li.%1$s_options a::before { content: "%2$s"; font-family: %3$s, sans-serif; }%4$s',
                 esc_attr( $tab['key'] ?? $tab['id'] ),
                 esc_attr( $icon_str ),
@@ -254,93 +254,76 @@ abstract class Base_Product_Type_Extender {
 
         }
 
-        echo '</style>';
-    }
+        printf(
+            '<styl%1$s type="text/css">%2$s</styl%1$s>',
+            'e',
+            $css //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        );
+	}
 
     /**
      * Adds custom javascript needed for the custom product types to work
      */
-    public function add_custom_product_types_js() {
-        if ( ! $this->is_product_edit_page() || empty( $this->get_product_types() ) ) {
-            return;
-        }
+	public function add_custom_product_types_js() {
+		if ( ! $this->is_product_edit_page() || empty( $this->get_product_types() ) ) {
+			return;
+		}
 
-        $opt_groups = array();
+		$opt_groups = array();
 
-        foreach ( $this->get_product_types() as $slug => $type ) {
-            $opt_groups[ $slug ] = array(
-                'groups'   => $type['show_groups'] ?? array(),
-                'tabs'     => $type['show_tabs'] ?? array(),
-                'inherits' => $type['inherits'] ?? array(),
-            );
-        }
+		$remap = fn ( array $arr, string $selector, string $action, string $type ) => array_map(
+            fn( string $target ) => array(
+                'target' => sprintf( $selector, $target ),
+                'class'  => "{$action}_if_{$type}",
+            ),
+            $arr
+        );
 
-        $opt_groups = wp_json_encode( $opt_groups );
-        echo '<' . 'script>'; //phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
-        echo "var utilAdditionalTypes = {$opt_groups};\n"; //phpcs:ignore
+		foreach ( array_merge( $this->get_product_options(), $this->get_product_types() ) as $type => $data ) {
+			$opt_groups = array_merge(
+                $opt_groups,
+                $remap( $data['show_groups'] ?? array(), '.options_group.%s', 'show', $type ),
+                $remap( $data['show_tabs'] ?? array(), '.%s_options', 'show', $type ),
+                $remap( $data['inherits'] ?? array(), '.show_if_%s', 'show', $type ),
+                $remap( $data['inherits'] ?? array(), '.hide_if_%s', 'hide', $type ),
+			);
+		}
+		$opt_groups = array_values( array_filter( $opt_groups ) );
 
-        echo <<<'JS'
-        jQuery(document).ready(($) => {
-            for (const[productType, optData] of Object.entries(utilAdditionalTypes)) {
-                optData.groups.forEach((group) => {
-                    $(`.options_group.${group}`).addClass(`show_if_${productType}`).show();
+		$script = <<<'JS'
+            jQuery(($) => {
+                const toggleVisibility = (isChecked, $show, $hide) => {
+                    $show.toggle(isChecked);
+                    $hide.toggle(!isChecked);
+                };
+
+                utilAdditionalTypes.forEach((optData) => {
+                    $(optData.target).addClass(optData.class);
                 });
-
-                optData.tabs.forEach((tab) => {
-                    if (['general', 'inventory'].includes(tab)) {
-                        jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).addClass('show_if_simple').show();
-
-                    } else {
-                        jQuery(`.${tab}_options`).addClass(`show_if_${productType}`).show();
-                    }
-                });
-
-                optData.inherits.forEach((parentType) => {
-                    $(`.show_if_${parentType}`).addClass(`show_if_${productType}`).show();
-                    $(`.hide_if_${parentType}`).addClass(`hide_if_${productType}`).hide();
-                })
-            }
-        })
-        JS;
-
-        echo '</script>';
-    }
-
-    /**
-     * Adds the javascript needed for the custom options selectors to work
-     */
-    public function add_custom_product_options_js() {
-        if ( ! $this->is_product_edit_page() && empty( $this->get_product_options() ) ) {
-            return;
-        }
-        ?>
-        <script type="text/javascript" id="pte-po-js">
-            var utilAdditionalOpts = <?php echo wp_json_encode( array_keys( $this->get_product_options() ) ); ?>;
-            jQuery(document).ready(() => {
 
                 utilAdditionalOpts.forEach((opt) => {
-                    jQuery(`input#_${opt}`).on('change', (e) => {
-                        var checked = jQuery(e.target).prop('checked');
+                    const $checkbox = $(`input#_${opt}`);
+                    const $showElements = $(`.show_if_${opt}`);
+                    const $hideElements = $(`.hide_if_${opt}`);
 
-                        if (checked) {
-                            jQuery(`.show_if_${opt}`).show();
-                            jQuery(`.hide_if_${opt}`).hide();
-                        } else {
-                            jQuery(`.show_if_${opt}`).hide();
-                            jQuery(`.hide_if_${opt}`).show();
-                        }
-                    });
+                    $checkbox.on('change', (e) => toggleVisibility($(e.target).prop('checked'), $showElements, $hideElements));
 
-                    if (jQuery(`input#_${opt}`).prop('checked')) {
-                        jQuery(`.show_if_${opt}`).show();
-                        jQuery(`.hide_if_${opt}`).hide();
-                    } else {
-                        jQuery(`.show_if_${opt}`).hide();
-                        jQuery(`.hide_if_${opt}`).show();
-                    }
+                    toggleVisibility($checkbox.prop('checked'), $showElements, $hideElements);
                 });
-            });
-        </script>
-        <?php
-    }
+            })
+        JS;
+
+		printf(
+            <<<'HTML'
+                <script>
+                    var utilAdditionalTypes = %s;
+                    var utilAdditionalOpts = %s;
+                    %s
+                </script>
+            HTML,
+            wp_json_encode( $opt_groups ),
+            wp_json_encode( array_keys( $this->get_product_options() ) ),
+            $script //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		);
+	}
 }
