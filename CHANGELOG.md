@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.3...v1.25.0) (2024-01-12)
+
+
+### Features
+
+* PTE Improvements ([e39f55e](https://github.com/oblakstudio/woocommerce-utils/commit/e39f55e22e266c1836a34cf0214da296b40100ea))
+
 ## [1.24.3](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.2...v1.24.3) (2024-01-11)
 
 
