@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/oblakstudio/woocommerce-utils/compare/v1.25.0...v1.25.1) (2024-01-18)
+
+
+### Bug Fixes
+
+* **PTE:** Non-prop option saving fix ([4489931](https://github.com/oblakstudio/woocommerce-utils/commit/44899310e17e9678db045aab9d561d10e0461b64))
+
 # [1.25.0](https://github.com/oblakstudio/woocommerce-utils/compare/v1.24.3...v1.25.0) (2024-01-12)
 
 
