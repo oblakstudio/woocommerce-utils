@@ -219,7 +219,7 @@ abstract class Base_Product_Type_Extender {
             if ( ( $option['is_prop'] ?? false ) || is_callable( array( $product, "set_{$slug}" ) ) ) {
                 $product->{"set_{$slug}"}( $option_status );
             } else {
-                $product->update_meta_data( $slug, $option_status );
+                $product->update_meta_data( "_{$slug}", $option_status );
             }
         }
 
