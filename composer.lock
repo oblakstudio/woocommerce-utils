@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a1c251743721b9001d5ecb5e0e1a067c",
+    "content-hash": "7d66fcaaee95503aef931336e6e8dd3b",
     "packages": [
         {
             "name": "oblak/wp-polyfills",
-            "version": "1.1.0",
+            "version": "1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/oblakstudio/wp-polyfills.git",
-                "reference": "b5444775f32b555b700a3f447dc2da99a5069ea3"
+                "reference": "7d72c1662454b77779c83bbd5a76f763efa96357"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/b5444775f32b555b700a3f447dc2da99a5069ea3",
-                "reference": "b5444775f32b555b700a3f447dc2da99a5069ea3",
+                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/7d72c1662454b77779c83bbd5a76f763efa96357",
+                "reference": "7d72c1662454b77779c83bbd5a76f763efa96357",
                 "shasum": ""
             },
             "require": {
@@ -33,6 +33,7 @@
             "autoload": {
                 "files": [
                     "src/oblak-polyfill-array.php",
+                    "src/oblak-polyfill-conditionals.php",
                     "src/oblak-polyfill-terms.php",
                     "src/oblak-polyfill-wpfs.php"
                 ],
@@ -53,9 +54,9 @@
             "description": "Various polyfills for WordPress.",
             "support": {
                 "issues": "https://github.com/oblakstudio/wp-polyfills/issues",
-                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.1.0"
+                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.2.1"
             },
-            "time": "2024-01-03T12:46:21+00:00"
+            "time": "2024-01-21T19:46:30+00:00"
         }
     ],
     "packages-dev": [
