@@ -46,7 +46,7 @@ abstract class Query_Vars_Extender {
         $request_arr = \wc_clean( \wp_unslash( $_REQUEST ) );
 
         foreach ( \array_keys( $this->vars ) as $var ) {
-            $query_vars[ $var ] = $request_arr[ $var ] ?? '';
+            $query_vars[ $var ] ??= $request_arr[ $var ] ?? '';
         }
 
         return $query_vars;
