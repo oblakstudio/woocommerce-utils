@@ -11,7 +11,6 @@
  * The WooCommerce product class handles individual product data.
  */
 interface WC_Product_Interface extends WC_Abstract_Legacy_Product_Interface {
-
     /**
 	 * Get the product if ID is passed, otherwise the product is new and empty.
 	 * This class should NOT be instantiated, but the wc_get_product() function
@@ -840,7 +839,6 @@ interface WC_Product_Interface extends WC_Abstract_Legacy_Product_Interface {
 	 */
 	public function set_downloads( $downloads_array );
 
-
 	/**
 	 * Set download limit.
 	 *
@@ -1179,7 +1177,6 @@ interface WC_Product_Interface extends WC_Abstract_Legacy_Product_Interface {
 	 * @return string
 	 */
 	public function get_price_html( $deprecated = '' );
-
 
 	/**
 	 * Get product name with SKU or ID. Used within admin.

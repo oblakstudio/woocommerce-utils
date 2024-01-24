@@ -13,11 +13,5 @@ insert_final_newline = true
 [*.php]
 indent_size = 4
 
-[*.json]
-indent_size = 4
-
-[package.json]
-indent_size = 2
-
 [*.md]
 trim_trailing_whitespace = false

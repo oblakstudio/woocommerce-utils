@@ -32,14 +32,19 @@ abstract class Base_Product_Type_Extender {
      * Class constructor
      */
     public function __construct() {
-        add_filter( 'product_type_selector', array( $this, 'add_custom_product_types' ) );
-        add_filter( 'product_type_options', array( $this, 'add_custom_product_options' ), 99, 1 );
-        add_filter( 'woocommerce_product_class', array( $this, 'modify_product_classnames' ), 99, 2 );
-        add_filter( 'woocommerce_product_data_tabs', array( $this, 'add_product_type_data_tabs' ), 999, 1 );
-        add_filter( 'woocommerce_product_data_panels', array( $this, 'add_product_type_data_panels' ), 999 );
-        add_action( 'woocommerce_admin_process_product_object', array( $this, 'set_custom_options_status' ), 99, 1 );
-        add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
-        add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
+        \add_filter( 'product_type_selector', array( $this, 'add_custom_product_types' ) );
+        \add_filter( 'product_type_options', array( $this, 'add_custom_product_options' ), 99, 1 );
+        \add_filter( 'woocommerce_product_class', array( $this, 'modify_product_classnames' ), 99, 2 );
+        \add_filter( 'woocommerce_product_data_tabs', array( $this, 'add_product_type_data_tabs' ), 999, 1 );
+        \add_filter( 'woocommerce_product_data_panels', array( $this, 'add_product_type_data_panels' ), 999 );
+        \add_action(
+            'woocommerce_admin_process_product_object',
+            array( $this, 'set_custom_options_status' ),
+            99,
+            1,
+        );
+        \add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
+        \add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
     }
 
     /**
@@ -98,7 +103,7 @@ abstract class Base_Product_Type_Extender {
     private function is_product_edit_page() {
         global $pagenow, $typenow;
 
-        return in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' === $typenow;
+        return \in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' === $typenow;
     }
 
     /**
@@ -109,21 +114,23 @@ abstract class Base_Product_Type_Extender {
      */
     public function add_custom_product_types( $types ) {
         $new_types = array();
-        $to_set    = array_filter(
+        $to_set    = \array_filter(
             $this->get_product_types(),
-            fn ( $slug ) => ! in_array( $slug, array_keys( $types ), true ) && 'variation' !== $slug,
-            ARRAY_FILTER_USE_KEY
+            static fn( $slug ) => ! \in_array( $slug, \array_keys( $types ), true ) && 'variation' !== $slug,
+            ARRAY_FILTER_USE_KEY,
         );
 
         foreach ( $to_set as $slug => $type ) {
             $new_types[ $slug ] = $type['name'];
 
-            if ( ! get_term_by( 'slug', $slug, 'product_type' ) ) {
-                wp_insert_term( $slug, 'product_type' );
+            if ( \get_term_by( 'slug', $slug, 'product_type' ) ) {
+                continue;
             }
+
+            \wp_insert_term( $slug, 'product_type' );
         }
 
-        return wp_array_diff_assoc( array_merge( $types, $new_types ), $this->types_to_remove );
+        return \wp_array_diff_assoc( \array_merge( $types, $new_types ), $this->types_to_remove );
     }
 
     /**
@@ -144,23 +151,26 @@ abstract class Base_Product_Type_Extender {
      * @return array          Modified product options.
      */
     public function add_custom_product_options( $options ) {
-        $options = array_merge(
+        $options = \array_merge(
             $options,
-            wp_array_flatmap(
-                array_values( $this->get_product_options() ),
-                fn( $opt ) => array(
+            \wp_array_flatmap(
+                \array_values( $this->get_product_options() ),
+                static fn( $opt ) => array(
                     $opt['key'] => array(
-                        'id'            => "_{$opt['key']}",
-                        'wrapper_class' => implode( ' ', array_map( fn( $t ) => "show_if_{$t}", $opt['for'] ) ),
-                        'label'         => $opt['label'] ?? $opt['key'],
+                        'default'       => \wc_bool_to_string( $opt['default'] ?? false ),
                         'description'   => $opt['description'] ?? '',
-                        'default'       => wc_bool_to_string( $opt['default'] ?? false ),
+                        'id'            => "_{$opt['key']}",
+                        'label'         => $opt['label'] ?? $opt['key'],
+                        'wrapper_class' => \implode(
+                            ' ',
+                            \array_map( static fn( $t ) => "show_if_{$t}", $opt['for'] ),
+                        ),
                     ),
                 ),
-            )
+            ),
         );
 
-        return wp_array_diff_assoc( $options, $this->options_to_remove );
+        return \wp_array_diff_assoc( $options, $this->options_to_remove );
     }
 
     /**
@@ -170,19 +180,19 @@ abstract class Base_Product_Type_Extender {
      * @return array       Modified product data tabs.
      */
     public function add_product_type_data_tabs( $tabs ) {
-        return array_merge(
+        return \array_merge(
             $tabs,
-            wp_array_flatmap(
+            \wp_array_flatmap(
                 $this->get_product_tabs(),
-                fn( $tab ) => array(
+                static fn( $tab ) => array(
 					( $tab['key'] ?? $tab['id'] ) => array(
-						'label'    => $tab['label'],
-						'target'   => "{$tab['id']}_product_data",
-						'class'    => array_map( fn( $t ) => "show_if_{$t}", $tab['for'] ),
-						'priority' => $tab['priority'] ?? 100,
+                        'class'    => \array_map( static fn( $t ) => "show_if_{$t}", $tab['for'] ),
+                        'label'    => $tab['label'],
+                        'priority' => $tab['priority'] ?? 100,
+                        'target'   => "{$tab['id']}_product_data",
 					),
                 ),
-            )
+            ),
         );
     }
 
@@ -190,18 +200,14 @@ abstract class Base_Product_Type_Extender {
      * Adds the custom product type data panels
      */
     public function add_product_type_data_panels() {
-        foreach ( wp_list_pluck( $this->get_product_tabs(), 'id' ) as $tab ) {
-            printf(
+        foreach ( \wp_list_pluck( $this->get_product_tabs(), 'id' ) as $tab ) {
+            \printf(
                 '<div id="%s_product_data" class="panel woocommerce_options_panel" style="display: none;">',
-                esc_attr( $tab )
+                \esc_attr( $tab ),
             );
 
-            /**
-             * Display the product type / option data fields
-             *
-             * @since 1.0.0
-             */
-            do_action( "woocommerce_product_options_{$tab}" );
+            //phpcs:ignore WooCommerce.Commenting
+            \do_action( "woocommerce_product_options_{$tab}" );
 
             echo '</div>';
         }
@@ -214,9 +220,14 @@ abstract class Base_Product_Type_Extender {
      */
     public function set_custom_options_status( $product ) {
         foreach ( $this->get_product_options() as $slug => $option ) {
-            $option_status = wc_bool_to_string( 'on' === wc_clean( wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ) ); //phpcs:ignore WordPress.Security.NonceVerification.Missing
 
-            if ( ( $option['is_prop'] ?? false ) || is_callable( array( $product, "set_{$slug}" ) ) ) {
+            //phpcs:disable WordPress.Security.NonceVerification.Missing
+            $option_status = \wc_bool_to_string(
+                'on' === \wc_clean( \wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ),
+            );
+            //phpcs:enable
+
+            if ( ( $option['is_prop'] ?? false ) || \is_callable( array( $product, "set_{$slug}" ) ) ) {
                 $product->{"set_{$slug}"}( $option_status );
             } else {
                 $product->update_meta_data( "_{$slug}", $option_status );
@@ -230,34 +241,34 @@ abstract class Base_Product_Type_Extender {
      * Adds custom css needed for the custom product tab icons to work
      */
     public function add_custom_product_css() {
-        $tabs = array_filter(
+        $tabs = \array_filter(
             $this->get_product_tabs(),
-            fn( $tab ) => isset( $tab['icon'] ),
+            static fn( $tab ) => isset( $tab['icon'] ),
         );
 
-        if ( empty( $tabs ) || ! $this->is_product_edit_page() ) {
+        if ( 0 === \count( $tabs ) || ! $this->is_product_edit_page() ) {
             return;
         }
 
         $css = '';
         foreach ( $tabs as $tab ) {
-            $icon_font = str_starts_with( $tab['icon'], 'woo' ) ? 'woocommerce' : 'Dashicons';
-            $icon_str  = str_replace( 'woo:', '', $tab['icon'] );
+            $icon_font = \str_starts_with( $tab['icon'], 'woo' ) ? 'woocommerce' : 'Dashicons';
+            $icon_str  = \str_replace( 'woo:', '', $tab['icon'] );
 
-            $css .= sprintf(
+            $css .= \sprintf(
                 '#woocommerce-product-data ul.wc-tabs li.%1$s_options a::before { content: "%2$s"; font-family: %3$s, sans-serif; }%4$s',
-                esc_attr( $tab['key'] ?? $tab['id'] ),
-                esc_attr( $icon_str ),
-                esc_attr( $icon_font ),
+                \esc_attr( $tab['key'] ?? $tab['id'] ),
+                \esc_attr( $icon_str ),
+                \esc_attr( $icon_font ),
                 "\n",
             );
 
         }
 
-        printf(
+        \printf(
             '<styl%1$s type="text/css">%2$s</styl%1$s>',
             'e',
-            $css //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            $css, //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         );
 	}
 
@@ -265,22 +276,22 @@ abstract class Base_Product_Type_Extender {
      * Adds custom javascript needed for the custom product types to work
      */
 	public function add_custom_product_types_js() {
-		if ( ! $this->is_product_edit_page() || empty( $this->get_product_types() ) ) {
+		if ( ! $this->is_product_edit_page() || 0 === \count( $this->get_product_types() ) ) {
 			return;
 		}
 
 		$opt_groups = array();
 
-		$remap = fn ( array $arr, string $selector, string $action, string $type ) => array_map(
-            fn( string $target ) => array(
-                'target' => sprintf( $selector, $target ),
+		$remap = static fn( array $arr, string $selector, string $action, string $type ) => \array_map(
+            static fn( string $target ) => array(
                 'class'  => "{$action}_if_{$type}",
+                'target' => \sprintf( $selector, $target ),
             ),
-            $arr
+            $arr,
         );
 
-		foreach ( array_merge( $this->get_product_options(), $this->get_product_types() ) as $type => $data ) {
-			$opt_groups = array_merge(
+		foreach ( \array_merge( $this->get_product_options(), $this->get_product_types() ) as $type => $data ) {
+			$opt_groups = \array_merge(
                 $opt_groups,
                 $remap( $data['show_groups'] ?? array(), '.options_group.%s', 'show', $type ),
                 $remap( $data['show_tabs'] ?? array(), '.%s_options', 'show', $type ),
@@ -288,7 +299,7 @@ abstract class Base_Product_Type_Extender {
                 $remap( $data['inherits'] ?? array(), '.hide_if_%s', 'hide', $type ),
 			);
 		}
-		$opt_groups = array_values( array_filter( $opt_groups ) );
+		$opt_groups = \array_values( \array_filter( $opt_groups ) );
 
 		$script = <<<'JS'
             jQuery(($) => {
@@ -313,7 +324,7 @@ abstract class Base_Product_Type_Extender {
             })
         JS;
 
-		printf(
+		\printf(
             <<<'HTML'
                 <script>
                     var utilAdditionalTypes = %s;
@@ -321,9 +332,9 @@ abstract class Base_Product_Type_Extender {
                     %s
                 </script>
             HTML,
-            wp_json_encode( $opt_groups ),
-            wp_json_encode( array_keys( $this->get_product_options() ) ),
-            $script //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            \wp_json_encode( $opt_groups ),
+            \wp_json_encode( \array_keys( $this->get_product_options() ) ),
+            $script, //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		);
 	}
 }

@@ -16,7 +16,7 @@ use WC_Queue_Interface;
 /**
  * Enables easy schedule handling for importer related jobs
  */
-trait Scheduler_Trait {
+trait Scheduler {
     /**
      * Action name
      *
@@ -51,11 +51,11 @@ trait Scheduler_Trait {
 	 */
 	public function onetime_init() {
 		foreach ( $this->get_actions() as $action_name => $action_hook ) {
-			add_action(
+			\add_action(
                 $action_hook,
                 array( $this, 'do_action_or_reschedule' ),
                 10,
-                ( new \ReflectionMethod( $this::class, $action_name ) )->getNumberOfParameters()
+                ( new \ReflectionMethod( $this::class, $action_name ) )->getNumberOfParameters(),
             );
 		}
 	}
@@ -71,17 +71,23 @@ trait Scheduler_Trait {
                 continue;
             }
 
-            $options      = wp_parse_args(
-                array_map(
-                    fn ( $arg ) => is_callable( $arg ) ? $arg() : $arg,
-                    $options ?? array()
+            $options      = \wp_parse_args(
+                \array_map(
+                    static fn( $arg ) => \is_callable( $arg ) ? $arg() : $arg,
+                    $options ?? array(),
                 ),
-                $this->get_default_recurring_job_args( $action_name )
+                $this->get_default_recurring_job_args( $action_name ),
             );
             $has_existing = $this->has_existing_jobs( $action_name, $options['args'] );
 
             if ( $options['enabled'] ) {
-                ! $has_existing && self::queue()->schedule_recurring( $options['timestamp'], $options['interval'], $hook, $options['args'], $this->group );
+                ! $has_existing && self::queue()->schedule_recurring(
+                    $options['timestamp'],
+                    $options['interval'],
+                    $hook,
+                    $options['args'],
+                    $this->group,
+                );
             } else {
                 $has_existing && self::queue()->cancel_all( $hook, $options['args'], $this->group );
             }
@@ -94,7 +100,7 @@ trait Scheduler_Trait {
 	 * @return WC_Queue_Interface
 	 */
 	public static function queue(): WC_Queue_Interface {
-        return self::$queue ??= WC()->queue();
+        return self::$queue ??= \WC()->queue();
 	}
 
 	/**
@@ -110,31 +116,33 @@ trait Scheduler_Trait {
 	 * Gets the default scheduler actions for batching and scheduling actions.
 	 */
 	public function get_default_scheduler_actions() {
-        $prefix  = ! empty( $this->group ) ? $this->group . '_' : '';
+        $prefix  = '' === $this->group ? $this->group . '_' : '';
         $actions = array( 'schedule_action', 'queue_batches' );
 
-        return array_combine(
+        return \array_combine(
             $actions,
-            array_map(
-                fn ( $action ) => $prefix . $action . '_' . $this->name,
+            \array_map(
+                fn( $action ) => $prefix . $action . '_' . $this->name,
                 $actions,
-            )
+            ),
         );
 	}
 
 	/**
 	 * Gets the actions for this specific scheduler.
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	abstract public function get_scheduler_actions(): array;
 
     /**
      * Get recurring actions with their schedule.
      *
-     * @return array<string, mixed>
+     * @return array<string, array{enabled: bool|callable(): bool, args: array|callable(): array, timestamp: int|callable(): int, interval: int|callable(): int}>
      */
-    abstract public function get_recurring_actions(): array;
+    public function get_recurring_actions(): array {
+        return array();
+    }
 
     /**
      * Get default arguments for a recurring job.
@@ -144,13 +152,14 @@ trait Scheduler_Trait {
      */
     protected function get_default_recurring_job_args( string $action ): array {
         $args = array(
-            'enabled'   => true,
             'args'      => array(),
-            'timestamp' => strtotime( '+ 15 minutes' ),
+            'enabled'   => true,
             'interval'  => 15 * MINUTE_IN_SECONDS,
+            'timestamp' => \strtotime( '+ 15 minutes' ),
         );
 
-        return apply_filters( 'woosync_recurring_job_default_args', $args, $this->name, $action ); //phpcs:ignore WooCommerce.Commenting
+        //phpcs:ignore WooCommerce.Commenting
+        return \apply_filters( 'woosync_recurring_job_default_args', $args, $this->name, $action );
     }
 
 	/**
@@ -158,9 +167,9 @@ trait Scheduler_Trait {
 	 * Used to determine action hook names and clear events.
 	 */
 	public function get_actions() {
-		return array_merge(
+		return \array_merge(
 			$this->get_default_scheduler_actions(),
-			$this->get_scheduler_actions()
+			$this->get_scheduler_actions(),
 		);
 	}
 
@@ -191,7 +200,7 @@ trait Scheduler_Trait {
 	 */
 	public function get_dependency( $action_name ) {
 		$dependencies = $this->get_dependencies();
-		return isset( $dependencies[ $action_name ] ) ? $dependencies[ $action_name ] : null;
+		return $dependencies[ $action_name ] ?? null;
 	}
 
 	/**
@@ -211,7 +220,7 @@ trait Scheduler_Trait {
 	 */
 	public function get_batch_size( $action ) {
 		$batch_sizes = $this->get_batch_sizes();
-		$batch_size  = isset( $batch_sizes[ $action ] ) ? $batch_sizes[ $action ] : 25;
+		$batch_size  = $batch_sizes[ $action ] ?? 25;
 
 		/**
 		 * Filter the batch size for regenerating a report table.
@@ -223,7 +232,7 @@ trait Scheduler_Trait {
          *
          * @since 8.1.0
 		 */
-		return apply_filters( 'woosync_scheduled_job_batch_size', $batch_size, $this->name, $action );
+		return \apply_filters( 'woosync_scheduled_job_batch_size', $batch_size, $this->name, $action );
 	}
 
 	/**
@@ -236,14 +245,10 @@ trait Scheduler_Trait {
 		$flattened = array();
 
 		foreach ( $args as $arg ) {
-			if ( is_array( $arg ) ) {
-				$flattened[] = $this->flatten_args( $arg );
-			} else {
-				$flattened[] = $arg;
-			}
+			$flattened[] = \is_array( $arg ) ? $this->flatten_args( $arg ) : $arg;
 		}
 
-		$string = '[' . implode( ',', $flattened ) . ']';
+		$string = '[' . \implode( ',', $flattened ) . ']';
 		return $string;
 	}
 
@@ -257,24 +262,24 @@ trait Scheduler_Trait {
 	public function has_existing_jobs( $action_name, $args ) {
 		$existing_jobs = self::queue()->search(
 			array(
-				'status'   => 'pending',
-				'per_page' => 1,
-				'claimed'  => false,
-				'hook'     => $this->get_action( $action_name ),
-				'search'   => $this->flatten_args( $args ),
-				'group'    => $this->group,
-			)
+                'claimed'  => false,
+                'group'    => $this->group,
+                'hook'     => $this->get_action( $action_name ),
+                'per_page' => 1,
+                'search'   => $this->flatten_args( $args ),
+                'status'   => 'pending',
+			),
 		);
 
 		if ( $existing_jobs ) {
-			$existing_job = current( $existing_jobs );
+			$existing_job = \current( $existing_jobs );
 
 			// Bail out if there's a pending single action, or a pending scheduled actions.
 			if (
 				( $this->get_action( $action_name ) === $existing_job->get_hook() ) ||
 				(
 					$this->get_action( 'schedule_action' ) === $existing_job->get_hook() &&
-					in_array( $this->get_action( $action_name ), $existing_job->get_args(), true )
+					\in_array( $this->get_action( $action_name ), $existing_job->get_args(), true )
 				)
 			) {
 				return true;
@@ -299,23 +304,23 @@ trait Scheduler_Trait {
 
 		$blocking_jobs = self::queue()->search(
 			array(
-				'status'   => 'pending',
-				'orderby'  => 'date',
-				'order'    => 'DESC',
-				'per_page' => 1,
-				'search'   => $dependency, // search is used instead of hook to find queued batch creation.
-				'group'    => $this->group,
-			)
+                'group'    => $this->group,
+                'order'    => 'DESC',
+                'orderby'  => 'date',
+                'per_page' => 1,
+                'search'   => $dependency, // search is used instead of hook to find queued batch creation.
+                'status'   => 'pending',
+			),
 		);
 
 		$next_job_schedule = null;
 
-		if ( is_array( $blocking_jobs ) ) {
+		if ( \is_array( $blocking_jobs ) ) {
 			foreach ( $blocking_jobs as $blocking_job ) {
 				$next_job_schedule = $this->get_next_action_time( $blocking_job );
 
 				// Ensure that the next schedule is a DateTime (it can be null).
-				if ( is_a( $next_job_schedule, 'DateTime' ) ) {
+				if ( \is_a( $next_job_schedule, 'DateTime' ) ) {
 					return $blocking_job;
 				}
 			}
@@ -328,9 +333,9 @@ trait Scheduler_Trait {
 	 * Check for blocking jobs and reschedule if any exist.
 	 */
 	public function do_action_or_reschedule() {
-		$action_hook = current_action();
-		$action_name = array_search( $action_hook, $this->get_actions(), true );
-		$args        = func_get_args();
+		$action_hook = \current_action();
+		$action_name = \array_search( $action_hook, $this->get_actions(), true );
+		$args        = \func_get_args();
 
 		// Check if any blocking jobs exist and schedule after they've completed
 		// or schedule to run now if no blocking jobs exist.
@@ -341,10 +346,10 @@ trait Scheduler_Trait {
 				$this->get_next_action_time( $blocking_job )->getTimestamp() + 5,
 				$action_hook,
 				$args,
-				$this->group
+				$this->group,
 			);
 		} else {
-			call_user_func_array( array( $this, $action_name ), $args );
+			\call_user_func_array( array( $this, $action_name ), $args );
 		}
 	}
 
@@ -376,7 +381,7 @@ trait Scheduler_Trait {
 			return;
 		}
 
-		self::queue()->schedule_single( time() + 5, $action_hook, $args, $this->group );
+		self::queue()->schedule_single( \time() + 5, $action_hook, $args, $this->group );
 	}
 
 	/**
@@ -391,17 +396,17 @@ trait Scheduler_Trait {
 	 */
 	public function queue_batches( $range_start, $range_end, $single_batch_action, $action_args = array() ) {
 		$batch_size       = $this->get_batch_size( 'queue_batches' );
-		$range_size       = 1 + ( $range_end - $range_start );
-		$action_timestamp = time() + 5;
+		$range_size       = 1 + $range_end - $range_start;
+		$action_timestamp = \time() + 5;
 
 		if ( $range_size > $batch_size ) {
 			// If the current batch range is larger than a single batch,
 			// split the range into $queue_batch_size chunks.
-			$chunk_size = (int) ceil( $range_size / $batch_size );
+			$chunk_size = (int) \ceil( $range_size / $batch_size );
 
 			for ( $i = 0; $i < $batch_size; $i++ ) {
 				$batch_start = (int) ( $range_start + ( $i * $chunk_size ) );
-				$batch_end   = (int) min( $range_end, $range_start + ( $chunk_size * ( $i + 1 ) ) - 1 );
+				$batch_end   = (int) \min( $range_end, $range_start + ( $chunk_size * ( $i + 1 ) ) - 1 );
 
 				if ( $batch_start > $range_end ) {
 					return;
@@ -409,13 +414,13 @@ trait Scheduler_Trait {
 
 				$this->schedule_action(
 					'queue_batches',
-					array( $batch_start, $batch_end, $single_batch_action, $action_args )
+					array( $batch_start, $batch_end, $single_batch_action, $action_args ),
 				);
 			}
 		} else {
 			// Otherwise, queue the single batches.
 			for ( $i = $range_start; $i <= $range_end; $i++ ) {
-				$batch_action_args = array_merge( array( $i ), $action_args );
+				$batch_action_args = \array_merge( array( $i ), $action_args );
 				$this->schedule_action( $single_batch_action, $batch_action_args );
 			}
 		}

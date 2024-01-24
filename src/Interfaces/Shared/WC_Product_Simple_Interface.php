@@ -9,7 +9,6 @@
  * Simple product class.
  */
 interface WC_Product_Simple_Interface extends WC_Product_Interface {
-
     /**
 	 * Initialize simple product.
 	 *

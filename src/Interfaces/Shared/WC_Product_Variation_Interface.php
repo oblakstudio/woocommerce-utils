@@ -199,7 +199,6 @@ interface WC_Product_Variation_Interface extends WC_Product_Simple_Interface {
 	 */
 	public function get_attribute_summary( $context = 'view' );
 
-
 	/**
 	 * Set attribute summary.
 	 *

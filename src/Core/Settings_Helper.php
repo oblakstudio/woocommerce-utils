@@ -124,7 +124,7 @@ trait Settings_Helper {
      *
      * @param  string $section The section to get.
      * @param  string ...$args The sub-sections to get.
-     * @return mixed           Array of settings or a single setting.
+     * @return array<string, mixed>|mixed           Array of settings or a single setting.
      */
     public function get_settings( string $section = 'all', string ...$args ) {
         if ( 'all' === $section ) {

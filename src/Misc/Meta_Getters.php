@@ -12,7 +12,6 @@ namespace Oblak\WooCommerce\Misc;
  * Meta getters for various data types
  */
 final class Meta_Getters {
-
     /**
      * Get post by meta
      *
@@ -26,8 +25,8 @@ final class Meta_Getters {
             $wpdb->prepare(
                 "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s",
                 $meta_key,
-                $meta_value
-            )
+                $meta_value,
+            ),
         );
     }
 
@@ -44,8 +43,8 @@ final class Meta_Getters {
             $wpdb->prepare(
                 "SELECT term_id FROM {$wpdb->termmeta} WHERE meta_key = %s AND meta_value = %s",
                 $meta_key,
-                $meta_value
-            )
+                $meta_value,
+            ),
         );
     }
 
@@ -62,8 +61,8 @@ final class Meta_Getters {
             $wpdb->prepare(
                 "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value = %s",
                 $meta_key,
-                $meta_value
-            )
+                $meta_value,
+            ),
         );
     }
 
@@ -93,8 +92,8 @@ final class Meta_Getters {
             $wpdb->prepare(
                 "SELECT $id_key FROM {$wpdb->prefix}{$table} WHERE meta_key = %s AND meta_value = %s", //phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $meta_key,
-                $meta_value
-            )
+                $meta_value,
+            ),
         );
     }
 }

@@ -252,6 +252,7 @@ interface WC_Product_Variable_Interface extends WC_Product_Interface {
 	 * @return boolean
 	 */
 	public function child_has_weight();
+
 	/**
 	 * Does a child have dimensions set?
 	 *

@@ -11,7 +11,6 @@
  * Implemented by classes using the same CRUD(s) pattern.
  */
 interface WC_Data_Interface {
-
 	/**
 	 * Default constructor.
 	 *
@@ -55,6 +54,7 @@ interface WC_Data_Interface {
 	 * @return int
 	 */
 	public function get_id();
+
 	/**
 	 * Delete an object, set the ID to 0, and return result.
 	 *
@@ -103,7 +103,6 @@ interface WC_Data_Interface {
 	 * @return array
 	 */
 	public function get_extra_data_keys();
-
 
 	/**
 	 * Get All Meta Data.

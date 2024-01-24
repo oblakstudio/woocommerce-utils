@@ -13,7 +13,6 @@
  * This class will be removed in future versions.
  */
 interface WC_Abstract_Legacy_Product_Interface extends WC_Data_Interface {
-
     /**
 	 * Magic __isset method for backwards compatibility. Legacy properties which could be accessed directly in the past.
 	 *
@@ -196,6 +195,7 @@ interface WC_Abstract_Legacy_Product_Interface extends WC_Data_Interface {
 	 * @return WP_Post
 	 */
 	public function get_post_data();
+
 	/**
 	 * Get the parent of the post.
 	 *
