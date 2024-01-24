@@ -28,7 +28,7 @@ if ( ! function_exists( 'wc_deregister_all_blocks' ) ) :
             return;
         }
 
-        if ( did_action( 'plugins_loaded' ) || 'plugins_loaded' !== current_action() ) {
+        if ( did_action( 'plugins_loaded' ) && ! doing_action( 'plugins_loaded' ) ) {
             wc_doing_it_wrong(
                 __FUNCTION__,
                 'This function needs to be called during the plugins_loaded action.',
