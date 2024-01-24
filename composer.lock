@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "oblak/wp-polyfills",
-            "version": "v1.4.0",
+            "version": "v1.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/oblakstudio/wp-polyfills.git",
-                "reference": "376c0f7d5b9c49e0906e92303ceb0de03d7a4204"
+                "reference": "b5d433d81c97339abb6153bc8e1c3fe797815ae0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/376c0f7d5b9c49e0906e92303ceb0de03d7a4204",
-                "reference": "376c0f7d5b9c49e0906e92303ceb0de03d7a4204",
+                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/b5d433d81c97339abb6153bc8e1c3fe797815ae0",
+                "reference": "b5d433d81c97339abb6153bc8e1c3fe797815ae0",
                 "shasum": ""
             },
             "require": {
@@ -65,9 +65,9 @@
             ],
             "support": {
                 "issues": "https://github.com/oblakstudio/wp-polyfills/issues",
-                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.4.0"
+                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.4.2"
             },
-            "time": "2024-01-24T05:36:19+00:00"
+            "time": "2024-01-24T06:00:19+00:00"
         }
     ],
     "packages-dev": [
