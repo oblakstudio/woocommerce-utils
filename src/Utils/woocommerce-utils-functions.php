@@ -38,7 +38,17 @@ if ( ! function_exists( 'wc_deregister_all_blocks' ) ) :
         }
 
         wc_override_packages_class();
-        remove_filter_by_class_method( 'init', BlockTypesController::class, 'register_blocks', 10 );
+        wc_override_packages_class();
+        add_action(
+            'init',
+            static fn() => remove_filter_by_class_method(
+                'init',
+                BlockTypesController::class,
+                'register_blocks',
+                10,
+            ),
+            9,
+        );
 	}
 endif;
 
