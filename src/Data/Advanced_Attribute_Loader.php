@@ -7,7 +7,7 @@
 
 namespace Oblak\WooCommerce\Data;
 
-use Oblak\WooCommerce\Misc\Singleton;
+use Oblak\WP\Traits\Singleton;
 
 /**
  * Handles loading and creating of the advanced attribute tables
@@ -19,12 +19,12 @@ class Advanced_Attribute_Loader {
      * Constructor
      */
     protected function __construct() {
-        add_action( 'before_woocommerce_init', array( $this, 'define_tables' ), 20 );
-        add_action( 'before_woocommerce_init', array( $this, 'maybe_create_tables' ), 30 );
+        \add_action( 'before_woocommerce_init', array( $this, 'define_tables' ), 20 );
+        \add_action( 'before_woocommerce_init', array( $this, 'maybe_create_tables' ), 30 );
 
-        add_action( 'woocommerce_data_stores', array( $this, 'register_data_store' ), 0 );
+        \add_action( 'woocommerce_data_stores', array( $this, 'register_data_store' ), 0 );
 
-        add_action( 'woocommerce_attribute_deleted', array( $this, 'delete_attribute_meta' ), 20, 1 );
+        \add_action( 'woocommerce_attribute_deleted', array( $this, 'delete_attribute_meta' ), 20, 1 );
     }
 
     /**
@@ -47,7 +47,7 @@ class Advanced_Attribute_Loader {
      * Maybe create the tables
      */
     public function maybe_create_tables() {
-        if ( 'yes' === get_option( 'woocommerce_atsd_tables_created', 'no' ) ) {
+        if ( 'yes' === \get_option( 'woocommerce_atsd_tables_created', 'no' ) ) {
             return;
         }
 
@@ -65,7 +65,7 @@ class Advanced_Attribute_Loader {
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-        dbDelta( $this->get_schema() );
+        \dbDelta( $this->get_schema() );
     }
 
     /**
@@ -81,17 +81,19 @@ class Advanced_Attribute_Loader {
             $this->create_tables();
         }
 
-        $queries        = dbDelta( $this->get_schema(), false );
+        $queries        = \dbDelta( $this->get_schema(), false );
         $missing_tables = array();
 
         foreach ( $queries as $table_name => $result ) {
-            if ( "Created table {$table_name}" === $result ) {
-                $missing_tables[] = $table_name;
+            if ( "Created table {$table_name}" !== $result ) {
+                continue;
             }
+
+            $missing_tables[] = $table_name;
         }
 
-        if ( count( $missing_tables ) === 0 ) {
-            update_option( 'woocommerce_atsd_tables_created', 'yes' );
+        if ( 0 === \count( $missing_tables ) ) {
+            \update_option( 'woocommerce_atsd_tables_created', 'yes' );
         }
 
         return $missing_tables;
