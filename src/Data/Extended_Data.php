@@ -135,7 +135,7 @@ abstract class Extended_Data extends \WC_Data {
      *
      * @return array<int, string>
      */
-    final public function get_core_data_keys(): array {
+    public function get_core_data_keys(): array {
         return \array_keys( $this->core_data );
     }
 
@@ -145,7 +145,7 @@ abstract class Extended_Data extends \WC_Data {
      * @param  string $context The context for the data.
      * @return array<string, mixed>
      */
-    final public function get_core_data( string $context = 'view' ): array {
+    public function get_core_data( string $context = 'view' ): array {
         $data = array();
 
         foreach ( $this->get_core_data_keys() as $prop ) {
