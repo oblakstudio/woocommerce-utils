@@ -145,8 +145,8 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         $data_row = $this->get_entities(
             array(
-				'ID'       => $data->get_id(),
-				'per_page' => 1,
+				$this->object_id_field => $data->get_id(),
+				'per_page'             => 1,
 			)
         );
 
@@ -233,7 +233,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         if ( $args['force_delete'] ) {
             do_action( 'woocommerce_before_delete_' . $this->get_entity_name(), $id, $args ); //phpcs:ignore WooCommerce.Commenting
 
-            $wpdb->delete( $this->get_table(), array( 'ID' => $data->get_id() ) );
+            $wpdb->delete( $this->get_table(), array( $this->object_id_field => $data->get_id() ) );
 
             if ( ! empty( _get_meta_table( $this->get_entity_name() ) ) ) {
                 $wpdb->delete(
@@ -516,8 +516,8 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             'page'     => 1,
             'orderby'  => $this->object_id_field,
             'order'    => 'DESC',
+            'return'   => '*',
         );
-        $fields   = '*';
 
         $args = wp_parse_args( $args, $defaults );
 
@@ -526,17 +526,15 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         $callback = 1 === $args['per_page'] ? 'get_row' : 'get_results';
 
-        if ( isset( $args['return'] ) ) {
-            switch ( $args['return'] ) {
-                case 'ids':
-                    $callback = 1 === $args['per_page'] ? 'get_var' : 'get_col';
-                    $fields   = $this->object_id_field;
-                    break;
-                default:
-                    $fields = $args['return'];
-                    break;
-            }
-        }
+        $fields = match($args['return']) {
+            'ids' => $this->object_id_field,
+            default => $args['return'],
+        };
+
+        $callback = match(true) {
+            str_contains(',', $fields), '*' === $fields => $args['per_page'] === 1 ? 'get_row' : 'get_results',
+            default => $args['per_page'] === 1 ? 'get_var' : 'get_col',
+        };
 
         return $wpdb->{"$callback"}(
             $wpdb->prepare(
@@ -571,18 +569,18 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @return string              SQL WHERE clauses.
      */
     protected function get_sql_where_clauses( $args, $clause_join ) {
-        if ( empty( $args ) ) {
+        if ( count( $args ) === 0 ) {
             return '';
         }
 
-        $args    = array_intersect_key(
+        $clauses = '';
+        $args    = wp_array_slice_assoc(
             $args,
             array_merge(
-                array( 'ID' => 1010110 ),
-                array_flip( $this->get_searchable_columns() )
+                array( $this->object_id_field ),
+                $this->get_searchable_columns()
             )
         );
-        $clauses = '';
 
         $this->first_clause = true;
 

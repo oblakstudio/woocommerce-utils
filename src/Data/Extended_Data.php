@@ -86,7 +86,7 @@ abstract class Extended_Data extends \WC_Data {
             $this->set_id( $data );
         } elseif ( $data instanceof Extended_Data ) {
             $this->set_id( $data->get_id() );
-        } elseif ( ( (int) $data->$id_field ) > 0 ) {
+        } elseif ( ( $data?->$id_field ?? 0 ) > 0 ) {
             $this->set_id( \absint( $data->$id_field ) );
         } else {
             $this->set_object_read( true );
