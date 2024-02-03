@@ -275,7 +275,7 @@ abstract class Extended_Data extends \WC_Data {
      *
      * @return array
      */
-    final public function get_prop_types(): array {
+    public function get_prop_types(): array {
         return $this->prop_types;
     }
 
@@ -285,7 +285,7 @@ abstract class Extended_Data extends \WC_Data {
      * @param  bool $gmt Whether to check for GMT or site time.
      * @return bool
      */
-    final public function has_created_prop( $gmt = false ): bool {
+    public function has_created_prop( $gmt = false ): bool {
         $prop_name = $gmt ? 'date_created_gmt' : 'date_created';
         return \in_array( $prop_name, $this->get_core_data_keys(), true );
     }
@@ -296,7 +296,7 @@ abstract class Extended_Data extends \WC_Data {
      * @param  bool $gmt Whether to check for GMT or site time.
      * @return bool
      */
-    final public function has_modified_prop( $gmt = false ): bool {
+    public function has_modified_prop( $gmt = false ): bool {
         $prop_name = $gmt ? 'date_modified_gmt' : 'date_modified';
         return \in_array( $prop_name, $this->get_core_data_keys(), true );
     }

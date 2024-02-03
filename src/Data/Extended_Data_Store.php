@@ -545,6 +545,19 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         );
     }
 
+    public function is_value_unique(string $prop_or_column, $value): bool {
+        global $wpdb;
+
+        $count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$this->get_table()} WHERE {$prop_or_column} = %s",
+                $value
+            )
+        );
+
+        return $count === 0;
+    }
+
     /**
      * Get a single entity from the database
      *
