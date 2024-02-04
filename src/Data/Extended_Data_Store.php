@@ -1,4 +1,4 @@
-<?php //phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+<?php //phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnsupportedIdentifierPlaceholder
 /**
  * Extended_Data_Store class file
  *
@@ -17,7 +17,6 @@ use WC_Object_Data_Store_Interface;
  * Extended data store for searching and getting data from the database.
  */
 abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
-
     /**
      * By default, the table prefix is null.
      * This means that it will be set by default to the base `WC_Data_Store_WP` prefix which is `woocommerce_`
@@ -79,11 +78,11 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 	protected array $lookup_data_keys = array();
 
     /**
-     * Check if we're parsing the first where clause
+     * Clause for joining WHERE
      *
-     * @var bool
+     * @var string
      */
-    private $first_clause = true;
+    protected $clause_join = '';
 
     /**
      * Get the database table for the data store.
@@ -115,22 +114,27 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 		global $wpdb;
 
 		if ( $data->has_created_prop() && ! $data->get_date_created( 'edit' ) ) {
-			$data->set_date_created( time() );
+			$data->set_date_created( \time() );
 		}
 
 		$wpdb->insert( $this->get_table(), $data->get_core_data( 'db' ) );
 
-		$id = $wpdb->insert_id;
-
-		if ( ! $id ) {
+		if ( ! $wpdb->insert_id ) {
 			return;
 		}
 
-		$data->set_id( $id );
+		$data->set_id( $wpdb->insert_id );
+
 		$this->update_entity_meta( $data, true );
 		$this->update_terms( $data, true );
 		$this->handle_updated_props( $data );
 		$this->clear_caches( $data );
+
+        $data->save_meta_data();
+        $data->apply_changes();
+
+        // Documented in `WC_Data_Store_WP`.
+        \do_action( 'woocommerce_new_' . $this->get_entity_name(), $data->get_id(), $data );
 	}
 
     /**
@@ -138,7 +142,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      *
      * @param  Extended_Data $data Package object.
      *
-     * @throws Exception If invalid Entity.
+     * @throws \Exception If invalid Entity.
      */
     public function read( &$data ) {
         $data->set_defaults();
@@ -147,11 +151,11 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
             array(
 				$this->object_id_field => $data->get_id(),
 				'per_page'             => 1,
-			)
+			),
         );
 
         if ( ! $data->get_id() || ! $data_row ) {
-            throw new Exception( 'Invalid Entity' );
+            throw new \Exception( 'Invalid Entity' );
         }
 
         $data->set_props( (array) $data_row );
@@ -160,6 +164,9 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $this->read_extra_data( $data );
 
         $data->set_object_read( true );
+
+        // Documented in `WC_Data_Store_WP`.
+        \do_action( "woocommerce_{$this->get_entity_name()}_read", $data->get_id() );
     }
 
     /**
@@ -170,42 +177,53 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     public function update( &$data ) {
         global $wpdb;
 
-        $data->save_meta_data();
         $changes = $data->get_changes();
+        $ch_keys = \array_intersect( \array_keys( $changes ), $data->get_core_data_keys() );
 
-        $core_data = array_intersect( array_keys( $changes ), $data->get_core_data_keys() )
-            ? $data->get_core_data( 'db' )
+        $core_data = \count( $ch_keys ) > 0
+            ? \array_merge( $data->get_core_data( 'db' ), $this->get_date_modified_prop( $data ) )
             : array();
 
-        if ( $data->has_modified_prop() ) {
-            if ( isset( $changes['date_modified'] ) && $data->get_date_modified( 'db' ) ) {
-                $core_data['date_modified'] = $data->get_date_modified( 'db' );
-            } else {
-                $core_data['date_modified'] = current_time( 'mysql' );
-            }
-
-            if ( $data->has_modified_prop( true ) ) {
-                if ( isset( $changes['date_modified_gmt'] ) && $data->get_date_modified_gmt( 'db' ) ) {
-                    $core_data['date_modified_gmt'] = $data->get_date_modified_gmt( 'db' );
-                } else {
-                    $core_data['date_modified_gmt'] = current_time( 'mysql', 1 );
-                }
-            }
+        if ( \count( $core_data ) > 0 ) {
+            $wpdb->update(
+                $this->get_table(),
+                $core_data,
+                array( $this->object_id_field => $data->get_id() ),
+            );
         }
-
-        ! empty( $core_data ) &&
-        $wpdb->update(
-            $this->get_table(),
-            $core_data,
-            array( $this->get_object_id_field() => $data->get_id() )
-        );
 
         $this->update_entity_meta( $data );
         $this->update_terms( $data );
         $this->handle_updated_props( $data );
         $this->clear_caches( $data );
 
+        $data->save_meta_data();
         $data->apply_changes();
+
+        // Documented in `WC_Data_Store_WP`.
+        \do_action( 'woocommerce_update_' . $this->get_entity_name(), $data->get_id(), $data );
+    }
+
+    /**
+     * Get the date modified core data (if it exists).
+     *
+     * @param  Extended_Data $data    Data object.
+     * @return array                  Array of props.
+     */
+    protected function get_date_modified_prop( Extended_Data &$data ): array {
+        $props = array();
+
+        if ( ! $data->has_modified_prop() ) {
+            return $props;
+        }
+
+        $props['date_modified'] = $data->get_date_modified( 'db' ) ?? \current_time( 'mysql' );
+
+        if ( $data->has_modified_prop( true ) ) {
+            $props['date_modified_gmt'] = $data->get_date_modified_gmt( 'db' ) ?? \current_time( 'mysql', 1 );
+        }
+
+        return $props;
     }
 
     /**
@@ -219,34 +237,26 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         $id = $data->get_id();
 
-        $args = wp_parse_args(
-            $args,
-            array(
-                'force' => false,
-            )
-        );
+        $args = \wp_parse_args( $args, array( 'force' => false ) );
 
         if ( ! $id ) {
             return;
         }
 
-        if ( $args['force_delete'] ) {
-            do_action( 'woocommerce_before_delete_' . $this->get_entity_name(), $id, $args ); //phpcs:ignore WooCommerce.Commenting
-
-            $wpdb->delete( $this->get_table(), array( $this->object_id_field => $data->get_id() ) );
-
-            if ( ! empty( _get_meta_table( $this->get_entity_name() ) ) ) {
-                $wpdb->delete(
-                    _get_meta_table( $this->get_entity_name() ),
-                    array(
-                        "{$this->meta_type}_id" => $id,
-                    )
-                );
-            }
-
-            do_action( 'woocommerce_delete_' . $this->get_entity_name(), $id, $data, $args ); //phpcs:ignore WooCommerce.Commenting
-
+        if ( ! $args['force_delete'] ) {
+            return;
         }
+
+        //phpcs:ignore WooCommerce.Commenting
+        \do_action( 'woocommerce_before_delete_' . $this->get_entity_name(), $id, $args );
+
+        $wpdb->delete( $this->get_table(), array( $this->object_id_field => $data->get_id() ) );
+        $data->set_id( 0 );
+
+        $this->delete_entity_meta( $id );
+
+        //phpcs:ignore WooCommerce.Commenting
+        \do_action( 'woocommerce_delete_' . $this->get_entity_name(), $id, $data, $args );
     }
 
     /**
@@ -270,17 +280,21 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     /**
      * Format the meta key to props array.
      *
+     * Used as a compatibility layer for older versions of WooCommerce Utils.
+     *
      * @return array<string, string>
      *
      * @throws \Exception If invalid meta key to prop mapping.
+     *
+     * phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      */
 	protected function format_key_to_props(): array {
 		$formatted = array();
 
 		foreach ( $this->meta_key_to_props as $maybe_meta_key => $maybe_prop ) {
-			if ( is_int( $maybe_meta_key ) && is_string( $maybe_prop ) ) {
-				$formatted[ $maybe_prop ] = ltrim( $maybe_prop, '_' );
-			} elseif ( is_string( $maybe_meta_key ) && is_string( $maybe_prop ) ) {
+			if ( \is_int( $maybe_meta_key ) && \is_string( $maybe_prop ) ) {
+				$formatted[ $maybe_prop ] = \ltrim( $maybe_prop, '_' );
+			} elseif ( \is_string( $maybe_meta_key ) && \is_string( $maybe_prop ) ) {
 				$formatted[ $maybe_meta_key ] = $maybe_prop;
 			} else {
 				throw new \Exception( 'Invalid meta key to prop mapping' );
@@ -288,6 +302,8 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 		}
 
 		return $formatted;
+
+        // phpcs:enable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
 	}
 
     /**
@@ -298,16 +314,12 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 	 * @return array of terms
 	 */
 	protected function get_term_ids( $obj, $taxonomy ) {
-		if ( is_numeric( $obj ) ) {
-			$object_id = $obj;
-		} else {
-			$object_id = $obj->get_id();
-		}
-		$terms = wp_get_object_terms( $object_id, $taxonomy );
-		if ( false === $terms || is_wp_error( $terms ) ) {
+		$object_id = \is_numeric( $obj ) ? $obj : $obj->get_id();
+		$terms     = \wp_get_object_terms( $object_id, $taxonomy );
+		if ( false === $terms || \is_wp_error( $terms ) ) {
 			return array();
 		}
-		return wp_list_pluck( $terms, 'term_id' );
+		return \wp_list_pluck( $terms, 'term_id' );
 	}
 
     /**
@@ -318,13 +330,15 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      */
     protected function read_entity_data( &$data ) {
         $object_id   = $data->get_id();
-        $meta_values = get_metadata( $this->get_entity_name(), $object_id );
+        $meta_values = \get_metadata( $this->get_entity_name(), $object_id );
 
         $set_props = array();
 
         foreach ( $this->format_key_to_props() as $meta_key => $prop ) {
-            $meta_value         = isset( $meta_values[ $meta_key ][0] ) ? $meta_values[ $meta_key ][0] : null;
-            $set_props[ $prop ] = maybe_unserialize( $meta_value ); // get_post_meta only unserializes single values.
+            $meta_value         = $meta_values[ $meta_key ][0] ?? null;
+            $set_props[ $prop ] = \maybe_unserialize(
+                $meta_value,
+            ); // get_post_meta only unserializes single values.
         }
 
         foreach ( $this->term_props as $term_prop => $taxonomy ) {
@@ -342,8 +356,15 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     protected function read_extra_data( &$data ) {
         foreach ( $data->get_extra_data_keys() as $key ) {
             try {
-                $data->{"set_{$key}"}( get_metadata( $this->get_entity_name(), $data->get_id(), '_' . $key, true ) );
-            } catch ( \Exception $e ) {
+                $data->{"set_{$key}"}(
+                    \get_metadata(
+                        $this->get_entity_name(),
+                        $data->get_id(),
+                        '_' . $key,
+                        true,
+                    )
+                );
+            } catch ( \Exception ) {
                 continue;
             }
         }
@@ -352,43 +373,82 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     /**
      * Update the entity meta in the DB.
      *
+     * We first update the meta data defined as prop data, then we update the extra data.
+     * Extra data is data that is not considered meta, but is stored in the meta table.
+     *
      * @param  Extended_Data $data  Data object.
      * @param  bool          $force Force update.
      */
 	protected function update_entity_meta( &$data, $force = false ) {
-		$meta_key_to_props = $this->format_key_to_props();
-		$props_to_update   = $force ? $meta_key_to_props : $this->get_props_to_update( $data, $meta_key_to_props );
+		$this->update_meta_data( $data, $force );
+
+        $props = \array_filter(
+            \array_intersect(
+                $data->get_extra_data_keys(),
+                \array_keys( $data->get_changes() ),
+            ),
+            fn( $p ) => ! \in_array( $p, $this->updated_props, true )
+        );
+
+        if ( \count( $props ) <= 0 ) {
+            return;
+        }
+
+        $this->update_extra_data( $data, $props );
+	}
+
+    /**
+     * Update meta data.
+     *
+     * @param  Extended_Data $data  Data object.
+     * @param  bool          $force Force update.
+     */
+    protected function update_meta_data( Extended_Data &$data, bool $force ) {
+        $meta_key_to_props = $this->format_key_to_props();
+		$props_to_update   = ! $force
+            ? $this->get_props_to_update( $data, $meta_key_to_props, $this->meta_type )
+            : $meta_key_to_props;
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
-			$value   = $data->{"get_$prop"}( 'db' );
-			$value   = is_string( $value ) ? wp_slash( $value ) : $value;
-			$updated = $this->update_or_delete_entity_meta( $data, $meta_key, $value );
-
-			if ( $updated ) {
-				$this->updated_props[] = $prop;
-			}
+            $this->update_meta_prop( $data, $meta_key, $prop );
 		}
+    }
 
-		foreach ( array_intersect( $data->get_extra_data_keys(), array_keys( $data->get_changes() ) ) as $key ) {
-			$meta_key = '_' . $key;
-
-			if ( in_array( $key, $this->updated_props, true ) ) {
-				continue;
-			}
+    /**
+     * Update extra data.
+     *
+     * @param  Extended_Data $data  Data object.
+     * @param  string[]      $props Extra data props.
+     */
+    protected function update_extra_data( Extended_Data &$data, array $props ) {
+		foreach ( $props as $prop ) {
+			$meta_key = '_' . $prop;
 
 			try {
-				$value   = $data->{"get_$key"}( 'db' );
-				$value   = is_string( $value ) ? wp_slash( $value ) : $value;
-				$updated = $this->update_or_delete_entity_meta( $data, $meta_key, $value );
-
-				if ( $updated ) {
-					$this->updated_props[] = $key;
-				}
-			} catch ( \Exception $e ) {
+                $this->update_meta_prop( $data, $meta_key, $prop );
+			} catch ( \Exception ) {
 				continue;
 			}
 		}
-	}
+    }
+
+    /**
+     * Updates a meta prop.
+     *
+     * @param  Extended_Data $data     Data object.
+     * @param  string        $meta_key Meta key.
+     * @param  string        $prop     Property.
+     */
+    protected function update_meta_prop( &$data, $meta_key, $prop ) {
+        $value = $data->{"get_$prop"}( 'db' );
+        $value = \is_string( $value ) ? \wp_slash( $value ) : $value;
+
+        if ( ! $this->update_or_delete_entity_meta( $data, $meta_key, $value ) ) {
+            return;
+        }
+
+        $this->updated_props[] = $prop;
+    }
 
     /**
      * For all stored terms in all taxonomies save them to the DB.
@@ -397,32 +457,19 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @param bool    $force  Force update. Used during create.
      */
     protected function update_terms( &$the_object, $force = false ) {
-        $changes = $the_object->get_changes();
         $props   = $this->term_props;
-        $updated = array();
+        $changes = \array_intersect_key( $the_object->get_changes(), $props );
 
         // If we don't have term props or there are no changes, and we're not forcing an update, return.
-        if ( empty( $props ) || ( empty( array_intersect_key( $changes, $props ) ) && ! $force ) ) {
+        if ( 0 === \count( $props ) || ( \count( $changes ) && ! $force ) ) {
             return;
         }
 
         foreach ( $props as $term_prop => $taxonomy ) {
-            $terms = $the_object->{"get_$term_prop"}( 'edit' );
+            $terms = \wc_string_to_array( $the_object->{"get_$term_prop"}( 'edit' ) );
 
-            if ( empty( $terms ) ) {
-                continue;
-            }
-
-            $updated[] = $taxonomy;
-            $terms     = is_array( $terms ) ? $terms : array( $terms );
-
-            wp_set_object_terms( $the_object->get_id(), $terms, $taxonomy, false );
-
+            \wp_set_object_terms( $the_object->get_id(), $terms, $taxonomy, false );
         }
-
-        /* //phpcs:ignore
-        $this->recount_terms_by_entity( $the_object->get_id(), $updated );
-        */
     }
 
     /**
@@ -431,40 +478,14 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @param  Extended_Data $data Data object.
      */
 	protected function handle_updated_props( &$data ) {
-		if ( array_intersect( $this->updated_props, $this->lookup_data_keys ) && ! is_null( $this->get_lookup_table() ) ) {
+		if ( \array_intersect( $this->updated_props, $this->lookup_data_keys ) && ! \is_null(
+            $this->get_lookup_table(),
+        ) ) {
             $this->update_lookup_table( $data->get_id(), $this->get_lookup_table() );
 		}
 
         $this->updated_props = array();
 	}
-
-    /**
-     * Recount terms by entity
-     *
-     * @param  int   $object_id  Object ID.
-     * @param  array $taxonomies Taxonomies.
-     */
-    protected function recount_terms_by_entity( int $object_id = 0, array $taxonomies = array() ) {
-        if ( empty( $object_id ) || empty( $taxonomies ) ) {
-            return;
-        }
-
-        foreach ( $taxonomies as $taxonomy ) {
-            $terms = wp_get_object_terms( $object_id, $taxonomy );
-
-            if ( empty( $terms ) ) {
-                continue;
-            }
-
-            $term_array = array();
-
-            foreach ( $terms as $term ) {
-                $term_array[ $term->term_id ] = $term->parent;
-            }
-
-            _wc_term_recount( $term_array, get_taxonomy( $taxonomy ), false, false );
-        }
-    }
 
     /**
      * Updates or deletes entity meta data
@@ -475,13 +496,36 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @return bool                True if updated, false if not.
      */
     protected function update_or_delete_entity_meta( $the_object, $meta_key, $meta_value ) {
-        if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-            $updated = delete_metadata( $this->get_entity_name(), $the_object->get_id(), $meta_key );
-        } else {
-            $updated = update_metadata( $this->get_entity_name(), $the_object->get_id(), $meta_key, $meta_value );
-        }
+        $updated = \in_array( $meta_value, array( array(), '' ), true ) && ! \in_array(
+            $meta_key,
+            $this->must_exist_meta_keys,
+            true,
+        ) ? \delete_metadata( $this->get_entity_name(), $the_object->get_id(), $meta_key ) : \update_metadata(
+            $this->get_entity_name(),
+            $the_object->get_id(),
+            $meta_key,
+            $meta_value,
+        );
 
         return (bool) $updated;
+    }
+
+    /**
+     * Delete metadata for a given object.
+     *
+     * @param  int $object_id Object ID.
+     */
+    protected function delete_entity_meta( int $object_id ) {
+        if ( ! \_get_meta_table( $this->get_entity_name() ) ) {
+            return;
+        }
+
+        $GLOBALS['wpdb']->delete(
+            \_get_meta_table( $this->get_entity_name() ),
+            array(
+                "{$this->meta_type}_id" => $object_id,
+            ),
+        );
     }
 
     /**
@@ -496,7 +540,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         $where_clauses = $this->get_sql_where_clauses( $args, $clause_join );
 
-        return ! empty( $where_clauses )
+        return '' !== $where_clauses
             ? (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()} WHERE 1=1{$where_clauses}" )
             : (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()}" );
     }
@@ -511,51 +555,81 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     public function get_entities( $args = array(), $clause_join = 'AND' ) {
         global $wpdb;
 
+        $this->clause_join = '';
+
         $defaults = array(
-            'per_page' => 20,
-            'page'     => 1,
-            'orderby'  => $this->object_id_field,
             'order'    => 'DESC',
+            'orderby'  => $this->object_id_field,
+            'page'     => 1,
+            'per_page' => 20,
             'return'   => '*',
         );
+        $args     = \wp_parse_args( $args, $defaults );
 
-        $args = wp_parse_args( $args, $defaults );
+        if ( 'ids' === $args['return'] ) {
+            $args['return'] = $this->object_id_field;
+        }
 
         $offset        = $args['per_page'] * ( $args['page'] - 1 );
         $where_clauses = $this->get_sql_where_clauses( $args, $clause_join );
-
-        $callback = 1 === $args['per_page'] ? 'get_row' : 'get_results';
-
-        $fields = match($args['return']) {
-            'ids' => $this->object_id_field,
-            default => $args['return'],
-        };
-
-        $callback = match(true) {
-            str_contains(',', $fields), '*' === $fields => $args['per_page'] === 1 ? 'get_row' : 'get_results',
-            default => $args['per_page'] === 1 ? 'get_var' : 'get_col',
-        };
+        $callback      = $this->get_wpdb_callback( $args['return'], $args['per_page'] );
 
         return $wpdb->{"$callback"}(
             $wpdb->prepare(
-                "SELECT {$fields} FROM {$this->get_table()} WHERE 1=1{$where_clauses} ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
+                "SELECT {$args['return']} FROM {$this->get_table()} WHERE 1=1 AND ({$where_clauses}) ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
                 $offset,
-                $args['per_page']
+                $args['per_page'],
             )
         );
     }
 
-    public function is_value_unique(string $prop_or_column, $value): bool {
+    /**
+     * Get the wpdb callback based on the fields required and per_page
+     *
+     * @param  string $fields   Fields to return.
+     * @param  int    $per_page Number of items per page.
+     * @return string           wpdb callback.
+     */
+    protected function get_wpdb_callback( $fields, int $per_page ) {
+        $has_comma       = \str_contains( ',', $fields );
+        $paged_callbacks = match ( $per_page ) {
+            1       => array( 'get_row', 'get_var' ),
+            default => array( 'get_results', 'get_col' ),
+        };
+
+        return match ( true ) {
+            $has_comma      => $paged_callbacks[0],
+            '*' === $fields => $paged_callbacks[0],
+            default         => $paged_callbacks[1],
+        };
+    }
+
+    /**
+     * Checks if a value is unique in the database
+     *
+     * @param  string $prop_or_column Property or column name.
+     * @param  mixed  $value          Value to check.
+     * @param  int    $current_id     Current ID.
+     * @return bool
+     */
+    public function is_value_unique( string $prop_or_column, $value, int $current_id ): bool {
         global $wpdb;
 
-        $count = $wpdb->get_var(
+        $count = (int) $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$this->get_table()} WHERE {$prop_or_column} = %s",
-                $value
-            )
+                <<<'SQL'
+                    SELECT COUNT(*) FROM %i
+                    WHERE %i = %s AND %i != %d;
+                SQL,
+                $this->get_table(),
+                $prop_or_column,
+                $value,
+                $this->object_id_field,
+                $current_id,
+            ),
         );
 
-        return $count === 0;
+        return 0 === $count;
     }
 
     /**
@@ -566,10 +640,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @return int|object|null     Entity ID or object. Null if not found.
      */
     public function get_entity( $args = array(), $clause_join = 'AND' ) {
-        $args = array_merge(
-            $args,
-            array( 'per_page' => 1 )
-        );
+        $args = \array_merge( $args, array( 'per_page' => 1 ) );
 
         return $this->get_entities( $args, $clause_join );
     }
@@ -582,38 +653,47 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      * @return string              SQL WHERE clauses.
      */
     protected function get_sql_where_clauses( $args, $clause_join ) {
-        if ( count( $args ) === 0 ) {
+        $clauses = array();
+        $args    = $this->get_where_clauses_args( $args );
+
+        if ( 0 === \count( $args ) ) {
             return '';
         }
 
-        $clauses = '';
-        $args    = wp_array_slice_assoc(
-            $args,
-            array_merge(
-                array( $this->object_id_field ),
-                $this->get_searchable_columns()
-            )
-        );
-
-        $this->first_clause = true;
-
         foreach ( $args as $column => $value ) {
             // If value is 'all' or 'all' is the array of values - skip.
-            if ( 'all' === $value || ( is_array( $value ) && in_array( 'all', $value, true ) ) ) {
+            if ( \in_array( 'all', \wc_string_to_array( $value ), true ) ) {
                 continue;
             }
+            $clauses[] = \sprintf(
+                '%1$s %2$s %3$s',
+                $this->clause_join,
+                $column,
+                $this->get_where_clause_value( $value ),
+            );
 
-            $escaped = '';
-            $clause  = $this->first_clause ? 'AND' : $clause_join;
-
-            $this->first_clause = false;
-
-            $escaped = $this->get_where_clause_value( $value );
-
-            $clauses .= " {$clause} {$column} {$escaped}";
+            $this->clause_join = $clause_join;
         }
 
-        return $clauses;
+        return \implode( ' ', $clauses );
+    }
+
+    /**
+     * Get valid argument keys for the SQL WHERE clause
+     *
+     * Valid arguments are the object_id_field and the searchable columns.
+     *
+     * @param  array<string, mixed> $args Arguments.
+     * @return array<string, mixed>       Valid arguments.
+     */
+    protected function get_where_clauses_args( array $args ): array {
+        return \wp_array_slice_assoc(
+            $args,
+            \array_merge(
+                array( $this->object_id_field ),
+                $this->get_searchable_columns(),
+            ),
+        );
     }
 
     /**
@@ -625,16 +705,16 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         global $wpdb;
 
         // Handle value as array.
-        if ( is_array( $value ) ) {
-            $escaped = implode( "','", array_map( 'esc_sql', $value ) );
+        if ( \is_array( $value ) ) {
+            $escaped = \implode( "','", \array_map( 'esc_sql', $value ) );
             return "IN ('{$escaped}')";
         }
 
         // Value is a string, let's handle wildcards.
-        $left_wildcard  = strpos( $value, '%' ) === 0 ? '%' : '';
-        $right_wildcard = strrpos( $value, '%' ) === strlen( $value ) - 1 ? '%' : '';
+        $left_wildcard  = 0 === \strpos( $value, '%' ) ? '%' : '';
+        $right_wildcard = \strrpos( $value, '%' ) === \strlen( $value ) - 1 ? '%' : '';
 
-        $value = trim( esc_sql( $value ), '%' );
+        $value = \trim( \esc_sql( $value ), '%' );
 
         if ( $left_wildcard || $right_wildcard ) {
             $value = $wpdb->esc_like( $value );
@@ -658,7 +738,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 		$table         = $wpdb->prefix;
 
 		// If we are dealing with a type of metadata that is not a core type, the table should be prefixed.
-		if ( ! in_array( $this->meta_type, array( 'post', 'user', 'comment', 'term' ), true ) ) {
+		if ( ! \in_array( $this->meta_type, array( 'post', 'user', 'comment', 'term' ), true ) ) {
 			$table .= $this->table_prefix ?? 'woocommerce_';
 		}
 
@@ -671,14 +751,14 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 			$table         = $wpdb->usermeta;
 		}
 
-		if ( ! empty( $this->object_id_field_for_meta ) ) {
+		if ( '' !== $this->object_id_field_for_meta ) {
 			$object_id_field = $this->object_id_field_for_meta;
 		}
 
 		return array(
-			'table'           => $table,
-			'object_id_field' => $object_id_field,
-			'meta_id_field'   => $meta_id_field,
+            'meta_id_field'   => $meta_id_field,
+            'object_id_field' => $object_id_field,
+            'table'           => $table,
 		);
 	}
 

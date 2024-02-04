@@ -24,7 +24,7 @@ use Oblak\WooCommerce\Data\Extended_Data_Store;
  *
  * Defines a `prop_types` array which is used to determine how to handle the data when getting and setting props.
  * By default supported types are:
- *  - `date`       - a DateTime object
+ *  - `date`      - a DateTime object
  *  - `bool`      - a boolean value
  *  - `array`     - an array which will be either imploded for a core key, or serialized for a meta key
  *  - `array_raw` - an array which will always be saved as a comma separated string
@@ -53,6 +53,13 @@ abstract class Extended_Data extends \WC_Data {
      * @var array<int, string>
      */
     protected array $core_data = array();
+
+    /**
+     * Keys that should be unique.
+     *
+     * @var array<int, string>
+     */
+    protected array $unique_keys = array();
 
     /**
      * Get the Data Object ID if ID is passed, otherwise Data is new and empty.
@@ -161,6 +168,10 @@ abstract class Extended_Data extends \WC_Data {
     protected function set_prop( $prop, $value ) {
         $prop_type = $this->prop_types[ $prop ] ?? '';
 
+        if ( \in_array( $prop, $this->unique_keys, true ) && $this->get_object_read() ) {
+            $this->check_unique_prop( $prop, $value );
+        }
+
         match ( $prop_type ) {
             'date'      => $this->set_date_prop( $prop, $value ),
             'bool'      => $this->set_bool_prop( $prop, $value ),
@@ -173,6 +184,28 @@ abstract class Extended_Data extends \WC_Data {
             'float'     => $this->set_float_prop( $prop, $value ),
             default     => parent::set_prop( $prop, $value ),
         };
+    }
+
+    /**
+     * Checks if a prop value is unique.
+     *
+     * @param  string $prop  Property name.
+     * @param  mixed  $value Property value.
+     */
+    protected function check_unique_prop( string $prop, $value ) {
+        // Unique propas must be scalar and not empty.
+        if ( ! \is_scalar( $value ) || \is_bool( $value ) || '' === $value ) {
+            return;
+        }
+
+        if ( $this->data_store->is_value_unique( $prop, $value, $this->get_id() ) ) {
+            return;
+        }
+
+        $this->error(
+            'unique_value_exists',
+            \sprintf( 'The value %s for %s is already in use.', $value, $prop ),
+        );
     }
 
     /**
