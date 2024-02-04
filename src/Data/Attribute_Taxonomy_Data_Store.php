@@ -1,71 +1,29 @@
-<?php // phpcs:disable Squiz.Commenting.VariableComment.MissingVar
+<?php //phpcs:disable Squiz.Commenting.VariableComment.MissingVar
 /**
- * Attribute_Data_Store class file
+ * Attribute_Taxonomy_Data_Store class file.
  *
- * @package  WooCommerce Utils
+ * @package WooCommerce Utils
+ * @subpackage Data
  */
 
 namespace Oblak\WooCommerce\Data;
 
-use Exception;
 use Oblak\WooCommerce\Data\Extended_Data_Store;
-use Throwable;
-use WC_Product_Attribute;
 
 /**
- * Attribute data store for searching and getting data from the database.
+ * Data store class for attribute taxonomies.
  */
 class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
     /**
      * {@inheritDoc}
-     */
-    protected $meta_type = 'attribute_taxonomy';
-
-    /**
-     * {@inheritDoc}
-     *
-     * @var string
      */
     protected $object_id_field = 'attribute_id';
 
     /**
      * {@inheritDoc}
      */
-    protected $object_id_field_for_meta = 'attribute_taxonomy_id';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected $internal_meta_keys = array(
-        '_image_id',
-        '_gallery_image_ids',
-        '_technical_label',
-    );
-
-    /**
-     * {@inheritDoc}
-     */
-    protected $must_exist_meta_keys = array(
-        '_image_id',
-        '_gallery_image_ids',
-        '_technical_label',
-    );
-
-    /**
-     * {@inheritDoc}
-     */
-    protected $meta_key_to_props = array(
-        '_image_id'          => 'image_id',
-        '_gallery_image_ids' => 'gallery_image_ids',
-        '_technical_label'   => 'technical_label',
-    );
-
-    /**
-     * {@inheritDoc}
-     */
     protected function get_table() {
-        global $wpdb;
-        return $wpdb->prefix . 'woocommerce_attribute_taxonomies';
+        return $GLOBALS['wpdb']->prefix . 'woocommerce_attribute_taxonomies';
     }
 
     /**
@@ -80,327 +38,173 @@ class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
      */
     protected function get_searchable_columns() {
         return array(
-            'attribute_name',
-            'attribute_label',
-            'attribute_type',
-            'attribute_orderby',
-            'attribute_public',
+            'name',
+            'label',
+            'type',
+            'public',
         );
     }
 
     /**
-     * Get global attributes.
+     * Reformats data for insert and update.
      *
-     * Global attributes are not used for variations.
+     * Functions `wc_create_attribute` and `wc_update_attribute` expect data in a different format:
+     * * `label` => `name`
+     * * `name` => `slug`
      *
-     * @return string[]
+     * So we remap the keys, and remove the label key.
+     *
+     * @param  Attribute_Taxonomy $data Data object.
+     * @return array
      */
-    public function get_global_attributes() {
-        $global_atts = array();
+    protected function reformat_data( Attribute_Taxonomy &$data ): array {
+        $args = \array_merge(
+            array( 'id' => $data->get_id() ),
+            $data->get_core_data(),
+        );
 
-        /**
-         * Filters the global attribute taxonomy names.
-         *
-         * @since 3.0.0
-         *
-         * @param  string[]                      $global_atts Global attribute taxonomy names.
-         * @param  Attribute_Taxonomy_Data_Store $this        Data store.
-         *
-         * @return string[]
-         */
-        return apply_filters( 'woocommerce_global_attributes', $global_atts, $this );
+        $args = \array_merge(
+            array(
+                'name' => $args['label'],
+                'slug' => $args['name'],
+            ),
+            \wp_array_diff_assoc( $args, array( 'label' ) ),
+        );
+
+        return $args;
     }
 
     /**
-     * Create an Attribute Taxonomy in the database.
+     * Creates a new attribute.
      *
-     * @param Attribute_Taxonomy $data Data to create.
+     * We override this method to handle the WooCommerce way of creating attributes.
      *
-     * @throws Exception If cannot create attribute taxonomy.
+     * @param  Attribute_Taxonomy $data The attribute to create.
      */
     public function create( &$data ) {
-        $id = wc_create_attribute(
-            array(
-				'id'           => $data->get_id(),
-				'name'         => $data->get_name(),
-                'slug'         => $data->get_slug(),
-                'type'         => $data->get_type(),
-                'order_by'     => $data->get_orderby(),
-                'has_archives' => $data->get_public(),
-            )
-        );
+        $args = $this->reformat_data( $data );
+        $id   = \wc_create_attribute( $args );
 
-        if ( ! $id || is_wp_error( $id ) ) {
-            throw new Exception( esc_html( $id->get_error_message() ) );
-
-        }
-            $data->set_id( $id );
-            $this->update_entity_meta( $data );
-            $data->save_meta_data();
-            $data->apply_changes();
-
-            $this->create_taxonomy( $data );
-    }
-
-    /**
-     * Create a taxonomy for the attribute.
-     *
-     * @param  Attribute_Taxonomy $data Data to create.
-     */
-    public function create_taxonomy( &$data ) {
-        if ( taxonomy_exists( $data->get_taxonomy_name() ) ) {
+        if ( ! $id || \is_wp_error( $id ) ) {
             return;
         }
 
-        $taxonomy_name = wc_attribute_taxonomy_name( $data->get_slug() );
+        $data->set_id( $id );
 
-        register_taxonomy(
-			$taxonomy_name,
-            // Documented in woocommerce.
-			apply_filters( 'woocommerce_taxonomy_objects_' . $taxonomy_name, array( 'product' ) ),
-            // Documented in woocommerce.
-			apply_filters(
-				'woocommerce_taxonomy_args_' . $taxonomy_name,
-				array(
-					'labels'       => array(
-						'name' => $data->get_name(),
-					),
-					'hierarchical' => true,
-					'show_ui'      => false,
-					'query_var'    => true,
-					'rewrite'      => false,
-				)
-			)
-		);
-    }
+        $this->update_entity_meta( $data, true );
+        $this->handle_updated_props( $data );
+        $this->clear_caches( $data );
 
-    /**
-     * Read an Attribute Taxonomy from the database.
-     *
-     * @param Attribute_Taxonomy $data Data to read.
-     *
-     * @throws Exception If invalid attribute taxonomy.
-     */
-    public function read( &$data ) {
-        $data->set_defaults();
-
-        $att_tax = wc_get_attribute( $data->get_id() );
-        $att_id  = $data->get_id();
-
-        if ( is_null( $att_tax ) || 0 === ! $att_id ) {
-            throw new Exception( 'Invalid attribute taxonomy.' );
-        }
-
-        $data->set_props(
-            array(
-				'name'    => $att_tax->name,
-				'slug'    => str_replace( 'pa_', '', $att_tax->slug ),
-				'type'    => $att_tax->type,
-				'orderby' => $att_tax->order_by,
-				'public'  => $att_tax->has_archives,
-            )
-        );
-
-        $this->read_entity_data( $data );
-        $data->set_object_read( true );
-    }
-
-    /**
-     * Update an Attribute Taxonomy in the database.
-     *
-     * @param Attribute_Taxonomy $data Data to update.
-     */
-    public function update( &$data ) {
         $data->save_meta_data();
-        wc_update_attribute(
-            $data->get_id(),
-            array(
-				'id'           => $data->get_id(),
-				'name'         => $data->get_name(),
-				'slug'         => $data->get_slug(),
-				'type'         => $data->get_type(),
-				'order_by'     => $data->get_orderby(),
-				'has_archives' => $data->get_public(),
-            )
-        );
-
-        $this->update_entity_meta( $data );
         $data->apply_changes();
     }
 
     /**
-     * Delete an Attribute Taxonomy from the database.
+     * Updates an attribute.
      *
-     * @param  Attribute_Taxonomy $data Data to delete.
-     * @param  array              $args Not used.
-     * @return bool
+     * We override this method to handle the WooCommerce way of updating attributes.
+     *
+     * @param  Attribute_Taxonomy $data The attribute to update.
      */
-    public function delete( &$data, $args = array() ) {
-        if ( 0 === $data->get_id() ) {
-            return false;
-        }
-        return wc_delete_attribute( $data->get_id() );
-    }
+    public function update( &$data ) {
+        $changes = $data->get_changes();
+        $ch_keys = \array_intersect( \array_keys( $changes ), $data->get_core_data_keys() );
 
-    /**
-     * Sanitizes the attribute slug.
-     *
-     * @param  string $slug Attribute name or slug.
-     * @return string       Sanitized slug.
-     */
-    public function sanitize_attribute_slug( $slug ) {
-        $slug = mb_substr( wc_sanitize_taxonomy_name( $slug ), 0, 28 );
-        $slug = preg_replace( '/[^a-zA-Z0-9\-_]/', '', $slug );
+        // Do not run attribute update if only meta data has changed.
+        if ( $ch_keys ) {
+            $args = \wp_array_diff_assoc( $this->reformat_data( $data ), array( 'id' ) );
+            $ret  = \wc_update_attribute( $data->get_id(), $args );
 
-        return $slug;
-    }
-
-    /**
-     * Get the attribute Taxonomy by name or slug
-     *
-     * Providing the create argument will create the attribute if it doesn't exist.
-     *
-     * @param  string               $attribute_name Attribute name.
-     * @param  Array<string, mixed> $args           Arguments.
-     * @return Attribute_Taxonomy|null              Attribute taxonomy, or null if not found.
-     */
-    public function get_by_name_or_slug( $attribute_name, $args = array() ) {
-        if ( str_starts_with( $attribute_name, 'pa_' ) ) {
-            $attribute_name = str_replace( 'pa_', '', $attribute_name );
-        }
-
-        $args = wp_parse_args(
-            $args,
-            array(
-				'create'    => false,
-				'overwrite' => false,
-            )
-        );
-        $att  = $this->get_entities(
-            array(
-				'attribute_label' => $attribute_name,
-                'attribute_name'  => $this->sanitize_attribute_slug( $attribute_name ),
-				'per_page'        => 1,
-            ),
-            'OR'
-        );
-
-        return $this->get_or_create( $att, $args, $attribute_name );
-    }
-
-    /**
-     * Get the attribute Taxonomy by name
-     *
-     * Providing the create argument will create the attribute if it doesn't exist.
-     *
-     * @param  string               $attribute_name Attribute name.
-     * @param  Array<string, mixed> $args           Arguments.
-     * @return Attribute_Taxonomy|null              Attribute taxonomy, or null if not found.
-     */
-    public function get_by_name( $attribute_name, $args = array() ) {
-        $args = wp_parse_args(
-            $args,
-            array(
-				'create'    => false,
-				'overwrite' => false,
-            )
-        );
-        $att  = $this->get_entities(
-            array(
-				'attribute_label' => $attribute_name,
-				'per_page'        => 1,
-            )
-        );
-
-        return $this->get_or_create( $att, $args, $attribute_name );
-    }
-
-    /**
-     * Get the attribute Taxonomy by name
-     *
-     * Providing the create argument will create the attribute if it doesn't exist.
-     *
-     * @param  Attribute_Taxonomy|null $att            Attribute taxonomy.
-     * @param  Array<string, mixed>    $args           Arguments.
-     * @param  string                  $attribute_name Attribute name.
-     * @return Attribute_Taxonomy|null                 Attribute taxonomy, or null if not found.
-     */
-    public function get_or_create( $att, $args, $attribute_name ) {
-        if ( ! empty( $att ) && ! $args['overwrite'] ) {
-            return new Attribute_Taxonomy( $att );
-        }
-
-        if ( ! $args['create'] ) {
-            return null;
-        }
-
-        /**
-         * Filters the arguments used to create an attribute taxonomy.
-         *
-         * @since 3.0.0
-         *
-         * @param  Array<string, mixed>          $args           Arguments.
-         * @param  string                        $attribute_name Attribute name.
-         * @param  Attribute_Taxonomy_Data_Store $this           Data store.
-         * @return Array<string, mixed>                          Arguments.
-         */
-        $args = apply_filters( 'woocommerce_attribute_taxonomy_create_args', $args, $attribute_name, $this );
-
-        $att = new Attribute_Taxonomy( $att );
-        $att->set_name( $attribute_name );
-        $att->set_slug( $args['slug'] ?? $attribute_name );
-        $att->set_type( $args['type'] ?? 'select' );
-        $att->set_orderby( $args['orderby'] ?? 'menu_order' );
-        $att->set_public( $args['public'] ?? false );
-        $att->save();
-
-        return $att;
-    }
-
-    /**
-     * Creates the formated attribute array to be used as a product prop.
-     *
-     * @param  Array<string, string|string[]> $raw_atts       Raw attribute array.
-     * @param  string                         $product_type   Product type.
-     * @param  string[]                       $variation_atts Attributes which are used for variation.
-     * @param  int                            $pos            Position of the attribute.
-     * @param  bool                           $overwrite      Whether to overwrite existing attributes.
-     * @return Array<string,WC_Product_Attribute>             Formated attribute array.
-     *
-     * @throws Exception If cannot create taxonomy for attribute.
-     */
-    public function create_attributes_for_product( $raw_atts, $product_type = 'simple', $variation_atts = array(), $pos = 0, $overwrite = false ) {
-        $return_arr = array();
-
-        foreach ( $raw_atts as $att_name => $att_values ) {
-            try {
-				$attribute     = $this->get_by_name_or_slug(
-                    $att_name,
-                    array(
-						'create'    => true,
-						'overwrite' => $overwrite,
-                    )
-				);
-				$for_variation = in_array( $att_name, $variation_atts, true ) && ! in_array( $att_name, $this->get_global_attributes(), true );
-
-				if ( 0 === $attribute->get_id() ) {
-					continue;
-				}
-
-				$return_arr[ $attribute->get_taxonomy_name() ] = $attribute->create_object( $att_values, $product_type, $for_variation, $pos );
-				++$pos;
-            } catch ( Throwable $e ) {
-                throw new Exception(
-                    sprintf(
-                        'Error creating taxonomy for attribute: %1$s with values: %2$s - %3$s',
-                        esc_html( $att_name ),
-                        esc_html( implode( ', ', $att_values ) ),
-                        esc_html( $e->getMessage() )
-                    )
-                );
+            if ( ! $ret || \is_wp_error( $ret ) ) {
+                return;
             }
         }
 
-        return $return_arr;
+        $this->update_entity_meta( $data );
+        $this->handle_updated_props( $data );
+        $this->clear_caches( $data );
+
+        $data->save_meta_data();
+        $data->apply_changes();
+    }
+
+    /**
+     * Deletes an attribute.
+     *
+     * We override this method to handle the WooCommerce way of deleting attributes.
+     *
+     * @param  Attribute_Taxonomy $data The attribute to delete.
+     * @param  array              $args Additional arguments.
+     */
+    public function delete( &$data, $args = array() ) {
+        if ( ! \wc_delete_attribute( $data->get_id() ) ) {
+            return;
+        }
+
+        $this->delete_entity_meta( $data->get_id() );
+    }
+
+    /**
+     * Reformat the where clause arguments.
+     *
+     * Each column in the table is prefixed with 'attribute_' so we need to prefix the keys in the where clause.
+     *
+     * @param  array<string, mixed> $args The where clause arguments.
+     * @return array<string, mixed>       The reformatted where clause arguments.
+     */
+    protected function get_where_clauses_args( array $args ): array {
+        $args = parent::get_where_clauses_args( $args );
+
+        return \array_combine(
+            \array_map(
+                static fn( $k ) => \str_starts_with( $k, 'attribute_' ) ? $k : "attribute_$k",
+                \array_keys( $args ),
+            ),
+            \array_values( $args ),
+        );
+    }
+
+    /**
+     * Checks if a value is unique.
+     *
+     * Each column in the table is prefixed with 'attribute_' so we need to prefix the keys in the where clause.
+     *
+     * @param  string $prop_or_column The property or column name.
+     * @param  mixed  $value          The value to check.
+     * @param  int    $current_id     The current ID.
+     * @return bool                   Whether the value is unique.
+     */
+    public function is_value_unique( string $prop_or_column, $value, int $current_id ): bool {
+        $prop_or_column = \str_starts_with(
+            $prop_or_column,
+            'attribute_',
+        ) ? $prop_or_column : 'attribute_' . $prop_or_column;
+
+        return parent::is_value_unique( $prop_or_column, $value, $current_id );
+    }
+
+    /**
+     * Gets an attribute by its name.
+     *
+     * @param  string $taxonomy_name   The attribute name.
+     * @param  string $ret             The return type.
+     * @return int|Attribute_Taxonomy|null
+     */
+    public function get_by_taxonomy_name( string $taxonomy_name, string $ret = 'object' ): int|Attribute_Taxonomy|null {
+        $attribute_name = \str_replace( 'pa_', '', $taxonomy_name );
+
+        $attribute_id = (int) $this->get_entities(
+            array(
+                'name'     => $attribute_name,
+                'per_page' => 1,
+                'return'   => 'ids',
+			),
+        );
+
+        return match ( true ) {
+            0 === $attribute_id && 'object' === $ret => null,
+            'object' === $ret => new Attribute_Taxonomy( $attribute_id ),
+            default => $attribute_id,
+        };
     }
 }

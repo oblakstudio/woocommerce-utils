@@ -7,24 +7,51 @@
 
 namespace Oblak\WooCommerce\Data;
 
-use Oblak\WP\Traits\Singleton;
-
 /**
  * Handles loading and creating of the advanced attribute tables
  */
 class Advanced_Attribute_Loader {
-    use Singleton;
-
     /**
      * Constructor
      */
-    protected function __construct() {
+    public function __construct() {
         \add_action( 'before_woocommerce_init', array( $this, 'define_tables' ), 20 );
         \add_action( 'before_woocommerce_init', array( $this, 'maybe_create_tables' ), 30 );
 
         \add_action( 'woocommerce_data_stores', array( $this, 'register_data_store' ), 0 );
 
-        \add_action( 'woocommerce_attribute_deleted', array( $this, 'delete_attribute_meta' ), 20, 1 );
+        \add_action( 'wocommerce_attribute_added', array( $this, 'register_attribute_taxonomy' ), 10, 2 );
+    }
+
+    /**
+     * Register the attribute taxonomy on attribute creation.
+     *
+     * @param  int                  $attribute_id          The attribute id.
+     * @param  array<string, mixed> $data The attribute data.
+     */
+    public function register_attribute_taxonomy( $attribute_id, $data ) {
+        $taxonomy = \wc_attribute_taxonomy_name( $data['attribute_name'] );
+        $args     = array(
+            array(
+                'hierarchical' => true,
+                'labels'       => array( 'name' => $data['attribute_label'] ),
+                'query_var'    => true,
+                'rewrite'      => false,
+                'show_ui'      => false,
+            ),
+        );
+
+        if ( \taxonomy_exists( $taxonomy ) ) {
+            return;
+        }
+
+        \register_taxonomy(
+			$taxonomy,
+            // Documented in woocommerce.
+			\apply_filters( 'woocommerce_taxonomy_objects_' . $taxonomy, array( 'product' ) ),
+            // Documented in woocommerce.
+			\apply_filters( 'woocommerce_taxonomy_args_' . $taxonomy, $args ),
+		);
     }
 
     /**
@@ -133,16 +160,5 @@ class Advanced_Attribute_Loader {
         $stores['attribute_taxonomy'] = Attribute_Taxonomy_Data_Store::class;
 
         return $stores;
-    }
-
-    /**
-     * Deletes the attribute meta for the given attribute
-     *
-     * @param  int $attribute_id Attribute ID.
-     */
-    public function delete_attribute_meta( $attribute_id ) {
-        global $wpdb;
-
-        $wpdb->delete( $wpdb->attribute_taxonomymeta, array( 'attribute_taxonomy_id' => $attribute_id ) );
     }
 }
