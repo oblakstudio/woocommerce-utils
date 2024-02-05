@@ -26,6 +26,7 @@
       "\\": "src/Interfaces/Shared"
     },
     "files": [
+      "src/Utils/wc-utils-att-functions.php",
       "src/Utils/woocommerce-utils-functions.php"
     ]
   },

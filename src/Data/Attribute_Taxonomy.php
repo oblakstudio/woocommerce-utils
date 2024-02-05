@@ -54,19 +54,10 @@ class Attribute_Taxonomy extends Extended_Data {
      * @param string $label Label.
      */
     public static function from_label( string $label ): static {
-        $ds = \WC_Data_Store::load( 'attribute_taxonomy' );
+        $att = \wc_get_attribute_taxonomy( $label );
 
-        // phpcs:ignore SlevomatCodingStandard.Functions.RequireSingleLineCall.RequiredSingleLineCall
-        $id  = (int) $ds->get_entities(
-            array(
-                'label'    => $label,
-                'per_page' => 1,
-                'return'   => 'ids',
-            ),
-        );
-        $att = new static( $id );
-
-        if ( 0 === $att->get_id() ) {
+        if ( ! $att ) {
+            $att = \wc_get_attribute_taxonomy_object( 0 );
             $att->set_label( $label );
             $att->save();
         }
