@@ -63,15 +63,15 @@ class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
             $data->get_core_data(),
         );
 
-        $args = \array_merge(
-            array(
-                'name' => $args['label'],
-                'slug' => $args['name'],
-            ),
-            \wp_array_diff_assoc( $args, array( 'label' ) ),
-        );
+        $args['name'] = $args['label'];
+        $args['slug'] = $args['name'];
 
-        return $args;
+        unset( $args['label'] );
+
+        return \array_filter(
+            $args,
+            static fn( $v ) => '' !== $v,
+        );
     }
 
     /**
@@ -97,6 +97,13 @@ class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
 
         $data->save_meta_data();
         $data->apply_changes();
+
+        // If creating from a label, we might need to read the data again.
+        if ( '' !== $data->get_name() ) {
+            return;
+        }
+
+        $this->read( $data );
     }
 
     /**
@@ -110,7 +117,6 @@ class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
         $changes = $data->get_changes();
         $ch_keys = \array_intersect( \array_keys( $changes ), $data->get_core_data_keys() );
 
-        // Do not run attribute update if only meta data has changed.
         if ( $ch_keys ) {
             $args = \wp_array_diff_assoc( $this->reformat_data( $data ), array( 'id' ) );
             $ret  = \wc_update_attribute( $data->get_id(), $args );
@@ -203,8 +209,8 @@ class Attribute_Taxonomy_Data_Store extends Extended_Data_Store {
 
         return match ( true ) {
             0 === $attribute_id && 'object' === $ret => null,
-            'object' === $ret => new Attribute_Taxonomy( $attribute_id ),
-            default => $attribute_id,
+            'object' === $ret                        => new Attribute_Taxonomy( $attribute_id ),
+            default                                  => $attribute_id,
         };
     }
 }

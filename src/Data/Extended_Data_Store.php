@@ -78,13 +78,6 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 	protected array $lookup_data_keys = array();
 
     /**
-     * Clause for joining WHERE
-     *
-     * @var string
-     */
-    protected $clause_join = '';
-
-    /**
      * Get the database table for the data store.
      *
      * @return string Database table name.
@@ -400,10 +393,10 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
     /**
      * Update meta data.
      *
-     * @param  Extended_Data $data  Data object.
-     * @param  bool          $force Force update.
+     * @param  WC_Data $data  Data object.
+     * @param  bool    $force Force update.
      */
-    protected function update_meta_data( Extended_Data &$data, bool $force ) {
+    protected function update_meta_data( WC_Data &$data, bool $force ) {
         $meta_key_to_props = $this->format_key_to_props();
 		$props_to_update   = ! $force
             ? $this->get_props_to_update( $data, $meta_key_to_props, $this->meta_type )
@@ -541,7 +534,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $where_clauses = $this->get_sql_where_clauses( $args, $clause_join );
 
         return '' !== $where_clauses
-            ? (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()} WHERE 1=1{$where_clauses}" )
+            ? (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()} WHERE {$where_clauses}" )
             : (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->get_table()}" );
     }
 
@@ -554,8 +547,6 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
      */
     public function get_entities( $args = array(), $clause_join = 'AND' ) {
         global $wpdb;
-
-        $this->clause_join = '';
 
         $defaults = array(
             'order'    => 'DESC',
@@ -576,7 +567,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
 
         return $wpdb->{"$callback"}(
             $wpdb->prepare(
-                "SELECT {$args['return']} FROM {$this->get_table()} WHERE 1=1 AND ({$where_clauses}) ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
+                "SELECT {$args['return']} FROM {$this->get_table()} WHERE {$where_clauses} ORDER BY {$args['orderby']} {$args['order']} LIMIT %d, %d",
                 $offset,
                 $args['per_page'],
             )
@@ -657,7 +648,7 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
         $args    = $this->get_where_clauses_args( $args );
 
         if ( 0 === \count( $args ) ) {
-            return '';
+            return '1=1';
         }
 
         foreach ( $args as $column => $value ) {
@@ -666,16 +657,16 @@ abstract class Extended_Data_Store extends WC_Data_Store_WP implements WC_Object
                 continue;
             }
             $clauses[] = \sprintf(
-                '%1$s %2$s %3$s',
-                $this->clause_join,
+                '%1$s %2$s',
                 $column,
                 $this->get_where_clause_value( $value ),
             );
 
-            $this->clause_join = $clause_join;
         }
 
-        return \implode( ' ', $clauses );
+        $clauses = \implode( $clause_join . ' ', $clauses );
+
+        return '' !== $clauses ? \sprintf( '1=1 AND (%s)', $clauses ) : '1=1';
     }
 
     /**

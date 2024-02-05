@@ -9,6 +9,7 @@
 namespace Oblak\WooCommerce\Data;
 
 use Oblak\WooCommerce\Data\Extended_Data;
+use WC_Product_Attribute;
 
 /**
  * Attribute Taxonomy class.
@@ -46,6 +47,32 @@ class Attribute_Taxonomy extends Extended_Data {
     protected array $unique_keys = array(
         'name',
     );
+
+    /**
+     * Create an attribute taxonomy from a label.
+     *
+     * @param string $label Label.
+     */
+    public static function from_label( string $label ): static {
+        $ds = \WC_Data_Store::load( 'attribute_taxonomy' );
+
+        // phpcs:ignore SlevomatCodingStandard.Functions.RequireSingleLineCall.RequiredSingleLineCall
+        $id  = (int) $ds->get_entities(
+            array(
+                'label'    => $label,
+                'per_page' => 1,
+                'return'   => 'ids',
+            ),
+        );
+        $att = new static( $id );
+
+        if ( 0 === $att->get_id() ) {
+            $att->set_label( $label );
+            $att->save();
+        }
+
+        return $att;
+    }
 
     /**
      * {@inheritDoc}
@@ -92,5 +119,40 @@ class Attribute_Taxonomy extends Extended_Data {
         }
 
         return parent::get_core_data( $context );
+    }
+
+    /**
+     * Get the taxonomy name.
+     *
+     * @return string
+     */
+    public function get_taxonomy_name() {
+        return \wc_attribute_taxonomy_name( $this->get_name() );
+    }
+
+    /**
+     * Get the `WC_Product_Attribute` object.
+     *
+     * @param  int                $position      Attribute position.
+     * @param  array<int, string> $options       Attribute options.
+     * @param  bool               $for_variation If is used for variations.
+     * @param  bool               $visible       If is visible on Product's additional info tab.
+     * @return WC_Product_Attribute
+     */
+    public function get_wc_attribute( int $position, array $options = array(), bool $for_variation = true, bool $visible = true ): WC_Product_Attribute {
+        $att = new WC_Product_Attribute();
+
+        $att->set_id( $this->get_id() );
+        $att->set_name( $this->get_taxonomy_name() );
+        $att->set_position( $position );
+        $att->set_visible( $visible );
+        $att->set_variation( $for_variation );
+        $att->set_options( $options );
+
+        // We use get_terms to get the term ids.
+        $terms = \wp_list_pluck( $att->get_terms(), 'term_id' );
+        $att->set_options( $terms );
+
+        return $att;
     }
 }

@@ -163,7 +163,7 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
         printf(
             $input_string,
             'active',
-            esc_attr( $get['active'] ),
+            esc_attr( $get['active'] ?? 'all' ),
         );
         //phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
     }

@@ -20,7 +20,7 @@ class Advanced_Attribute_Loader {
 
         \add_action( 'woocommerce_data_stores', array( $this, 'register_data_store' ), 0 );
 
-        \add_action( 'wocommerce_attribute_added', array( $this, 'register_attribute_taxonomy' ), 10, 2 );
+        \add_action( 'woocommerce_attribute_added', array( $this, 'register_attribute_taxonomy' ), 10, 2 );
     }
 
     /**
