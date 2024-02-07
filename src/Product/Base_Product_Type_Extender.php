@@ -303,9 +303,12 @@ abstract class Base_Product_Type_Extender {
 
 		$script = <<<'JS'
             jQuery(($) => {
-                const toggleVisibility = (isChecked, $show, $hide) => {
+                const toggleVisibility = ($show, $hide, isChecked = true) => {
                     $show.toggle(isChecked);
                     $hide.toggle(!isChecked);
+                };
+                const getElements = (action, option) => {
+                    return $(`.${action}_if_${option}`);
                 };
 
                 utilAdditionalTypes.forEach((optData) => {
@@ -314,14 +317,16 @@ abstract class Base_Product_Type_Extender {
 
                 utilAdditionalOpts.forEach((opt) => {
                     const $checkbox = $(`input#_${opt}`);
-                    const $showElements = $(`.show_if_${opt}`);
-                    const $hideElements = $(`.hide_if_${opt}`);
+                    const $showElements = getElements('show', opt);
+                    const $hideElements = getElements('hide', 'opt');
 
-                    $checkbox.on('change', (e) => toggleVisibility($(e.target).prop('checked'), $showElements, $hideElements));
+                    $checkbox.on('change', (e) => toggleVisibility($showElements, $hideElements, $(e.target).prop('checked')));
 
-                    toggleVisibility($checkbox.prop('checked'), $showElements, $hideElements);
+                    toggleVisibility($showElements, $hideElements, $checkbox.prop('checked'));
                 });
-            })
+
+                $('select#product-type').change();
+            });
         JS;
 
 		\printf(
