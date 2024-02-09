@@ -91,9 +91,16 @@ if ( ! function_exists( 'wc_change_product_type' ) ) :
 	function wc_change_product_type( int|WC_Product $product, string $new_type ) {
 		$id = is_a( $product, 'WC_Product' ) ? $product->get_id() : $product;
 
+        $post_type = match ( $new_type ) {
+            'variable'  => 'product',
+            'simple'    => 'product',
+            'variation' => 'product_variation',
+            default     => 'product',
+        };
+
         $args = array(
             'ID'        => $id,
-            'post_type' => $new_type,
+            'post_type' => $post_type,
         );
 		\wp_update_post( $args );
 
