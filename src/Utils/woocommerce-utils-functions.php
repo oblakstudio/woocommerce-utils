@@ -18,7 +18,7 @@ function wc_atds() {
     return WC_Data_Store::load( 'attribute_taxonomy' );
 }
 
-if ( ! function_exists( 'wc_deregister_all_blocks' ) ) :
+if ( ! function_exists( 'wc_deregister_all_blocks' ) && function_exists( 'wc_clean' ) ) :
     /**
      * Deregisters all WooCommerce blocks.
      */
@@ -78,4 +78,29 @@ if ( ! function_exists( 'wc_override_packages_class' ) ) :
         };
         $override->remove_woocommerce_blocks();
     }
+endif;
+
+if ( ! function_exists( 'wc_change_product_type' ) ) :
+
+    /**
+     * Change the product type
+     *
+     * @param  int|WC_Product $product  Product ID or object.
+     * @param  string         $new_type New product type.
+     * @return bool
+     */
+	function wc_change_product_type( int|WC_Product $product, string $new_type ) {
+		$id = is_a( $product, 'WC_Product' ) ? $product->get_id() : $product;
+
+        $args = array(
+            'ID'        => $id,
+            'post_type' => $new_type,
+        );
+		\wp_update_post( $args );
+
+		$product = \wc_get_product_object( $new_type, $id );
+
+		return $product->save() > 0;
+	}
+
 endif;
