@@ -11,10 +11,10 @@
   ],
   "require": {
     "php": ">= 8.0",
-    "oblak/wp-polyfills": "^1.1"
+    "oblak/wp-polyfills": "^1.1",
+    "xwoo/data-type": "^1.2"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.31",
     "oblak/wordpress-coding-standard": "^1.0"
   },
   "suggest": {
@@ -26,7 +26,6 @@
       "\\": "src/Interfaces/Shared"
     },
     "files": [
-      "src/Utils/wc-utils-att-functions.php",
       "src/Utils/woocommerce-utils-functions.php"
     ]
   },

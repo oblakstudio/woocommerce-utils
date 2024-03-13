@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "intelephense.environment.includePaths": [
+      "/home/venom/wp/woocommerce/woocommerce-8.5.2",
+      "/home/venom/wp/core/wp-6.4.1"
+    ]
+  }
+}

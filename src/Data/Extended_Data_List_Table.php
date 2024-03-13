@@ -112,7 +112,7 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
      * Record count for pagination
      */
     final protected function record_count() {
-        return $this->data_store->get_entity_count( $this->where_clauses );
+        return $this->data_store->count( $this->where_clauses );
     }
 
     /**
@@ -187,7 +187,7 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
                 'all' !== $status ? add_query_arg( $this->views_column, $status, $base_url ) : $base_url,
                 $status === $selected ? 'current' : '',
                 $title,
-                $this->data_store->get_entity_count( array( $this->views_column => $status ) )
+                $this->data_store->count( array( $this->views_column => $status ) )
             );
         }
 
@@ -288,7 +288,7 @@ abstract class Extended_Data_List_Table extends WP_List_Table {
 
         $args = array_merge( $defaults, $this->where_clauses );
 
-        $this->items = $this->data_store->get_entities( $args );
+        $this->items = $this->data_store->query( $args );
     }
 
     /**
