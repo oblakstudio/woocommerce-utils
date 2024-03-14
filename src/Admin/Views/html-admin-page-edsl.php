@@ -8,7 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$this->table->process_bulk_actions();
+$this->table->current_action() && $this->table->process_bulk_actions();
 ?>
 
 <div class="wrap">

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "621a0a4857927854607cb27ac87dca14",
+    "content-hash": "d0cbe1c3b4755acefd1106b98db9a6bc",
     "packages": [
         {
             "name": "oblak/wp-polyfills",
@@ -71,16 +71,16 @@
         },
         {
             "name": "xwoo/data-type",
-            "version": "v1.2.0",
+            "version": "v0.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/oblakstudio/xwoo-data-type.git",
-                "reference": "ab9828850002d24ada931d565172a96bc3168092"
+                "reference": "97cfde3293fbb7a0a0282ea07cddd1c974106160"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oblakstudio/xwoo-data-type/zipball/ab9828850002d24ada931d565172a96bc3168092",
-                "reference": "ab9828850002d24ada931d565172a96bc3168092",
+                "url": "https://api.github.com/repos/oblakstudio/xwoo-data-type/zipball/97cfde3293fbb7a0a0282ea07cddd1c974106160",
+                "reference": "97cfde3293fbb7a0a0282ea07cddd1c974106160",
                 "shasum": ""
             },
             "require": {
@@ -117,9 +117,9 @@
             ],
             "support": {
                 "issues": "https://github.com/oblakstudio/xwoo-data-type/issues",
-                "source": "https://github.com/oblakstudio/xwoo-data-type/tree/v1.2.0"
+                "source": "https://github.com/oblakstudio/xwoo-data-type/tree/v0.1.0"
             },
-            "time": "2024-03-13T13:10:41+00:00"
+            "time": "2024-03-14T13:32:31+00:00"
         }
     ],
     "packages-dev": [
