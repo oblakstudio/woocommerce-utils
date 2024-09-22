@@ -154,7 +154,6 @@ abstract class Base_Product_Type_Extender {
         $options = \array_merge(
             $options,
             \wp_array_flatmap(
-                \array_values( $this->get_product_options() ),
                 static fn( $opt ) => array(
                     $opt['key'] => array(
                         'default'       => \wc_bool_to_string( $opt['default'] ?? false ),
@@ -167,10 +166,11 @@ abstract class Base_Product_Type_Extender {
                         ),
                     ),
                 ),
+                \array_values( $this->get_product_options() ),
             ),
         );
 
-        return \wp_array_diff_assoc( $options, $this->options_to_remove );
+        return \xwp_array_diff_assoc( $options, ...$this->options_to_remove );
     }
 
     /**
@@ -183,7 +183,6 @@ abstract class Base_Product_Type_Extender {
         return \array_merge(
             $tabs,
             \wp_array_flatmap(
-                $this->get_product_tabs(),
                 static fn( $tab ) => array(
 					( $tab['key'] ?? $tab['id'] ) => array(
                         'class'    => \array_map( static fn( $t ) => "show_if_{$t}", $tab['for'] ),
@@ -192,6 +191,7 @@ abstract class Base_Product_Type_Extender {
                         'target'   => "{$tab['id']}_product_data",
 					),
                 ),
+                $this->get_product_tabs(),
             ),
         );
     }
@@ -221,16 +221,12 @@ abstract class Base_Product_Type_Extender {
     public function set_custom_options_status( $product ) {
         foreach ( $this->get_product_options() as $slug => $option ) {
 
-            //phpcs:disable WordPress.Security.NonceVerification.Missing
-            $option_status = \wc_bool_to_string(
-                'on' === \wc_clean( \wp_unslash( $_POST[ "_{$slug}" ] ?? 'no' ) ),
-            );
-            //phpcs:enable
+            $status = \wc_bool_to_string( 'on' === \xwp_fetch_post_var( "_{$slug}", 'no' ) );
 
             if ( ( $option['is_prop'] ?? false ) || \is_callable( array( $product, "set_{$slug}" ) ) ) {
-                $product->{"set_{$slug}"}( $option_status );
+                $product->{"set_{$slug}"}( $status );
             } else {
-                $product->update_meta_data( "_{$slug}", $option_status );
+                $product->update_meta_data( "_{$slug}", $status );
             }
         }
 

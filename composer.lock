@@ -4,28 +4,24 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ef52c24e4caca5c5f908c186de75eb4",
+    "content-hash": "57d4287a8f47a6819ae1dac68503849c",
     "packages": [
         {
-            "name": "oblak/wp-polyfills",
-            "version": "v1.4.2",
+            "name": "x-wp/helper-functions",
+            "version": "v1.9.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/oblakstudio/wp-polyfills.git",
-                "reference": "b5d433d81c97339abb6153bc8e1c3fe797815ae0"
+                "url": "https://github.com/x-wp/helper-functions.git",
+                "reference": "4376fd98dea090e7ce03ef7dd16be9931e0c8f3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oblakstudio/wp-polyfills/zipball/b5d433d81c97339abb6153bc8e1c3fe797815ae0",
-                "reference": "b5d433d81c97339abb6153bc8e1c3fe797815ae0",
+                "url": "https://api.github.com/repos/x-wp/helper-functions/zipball/4376fd98dea090e7ce03ef7dd16be9931e0c8f3f",
+                "reference": "4376fd98dea090e7ce03ef7dd16be9931e0c8f3f",
                 "shasum": ""
             },
             "require": {
-                "php": ">= 8.0 < 8.2"
-            },
-            "require-dev": {
-                "ergebnis/composer-normalize": "^2.31",
-                "oblak/wordpress-coding-standard": "^1"
+                "php": ">=8.0"
             },
             "suggest": {
                 "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
@@ -33,15 +29,11 @@
             "type": "library",
             "autoload": {
                 "files": [
-                    "src/oblak-polyfill-array.php",
-                    "src/oblak-polyfill-block.php",
-                    "src/oblak-polyfill-conditionals.php",
-                    "src/oblak-polyfill-filter.php",
-                    "src/oblak-polyfill-terms.php",
-                    "src/oblak-polyfill-wpfs.php"
+                    "xwp-helper-fns.php",
+                    "xwp-helper-fns-req.php"
                 ],
                 "psr-4": {
-                    "Oblak\\WP\\": "src/"
+                    "XWP\\Helper\\Functions\\": "."
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -54,20 +46,73 @@
                     "email": "sibin.grasic@oblak.studio"
                 }
             ],
-            "description": "Various polyfills for WordPress.",
+            "description": "Various traits related to xWP packages",
             "keywords": [
-                "compat",
-                "compatibility",
-                "polyfill",
-                "shim",
-                "shims",
-                "wordpress"
+                "contracts",
+                "decoupling",
+                "extended-wp",
+                "interfaces",
+                "interoperability",
+                "standards",
+                "traits"
             ],
             "support": {
-                "issues": "https://github.com/oblakstudio/wp-polyfills/issues",
-                "source": "https://github.com/oblakstudio/wp-polyfills/tree/v1.4.2"
+                "issues": "https://github.com/x-wp/helper-functions/issues",
+                "source": "https://github.com/x-wp/helper-functions/tree/v1.9.2"
             },
-            "time": "2024-01-24T06:00:19+00:00"
+            "time": "2024-09-18T14:43:14+00:00"
+        },
+        {
+            "name": "x-wp/helper-traits",
+            "version": "v1.9.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/x-wp/helper-traits.git",
+                "reference": "0367d136d6ba36e2ae0fe1854584ef760ea7cae9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/x-wp/helper-traits/zipball/0367d136d6ba36e2ae0fe1854584ef760ea7cae9",
+                "reference": "0367d136d6ba36e2ae0fe1854584ef760ea7cae9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "suggest": {
+                "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "XWP\\Helper\\Traits\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-only"
+            ],
+            "authors": [
+                {
+                    "name": "Sibin Grasic",
+                    "email": "sibin.grasic@oblak.studio"
+                }
+            ],
+            "description": "Various traits related to xWP packages",
+            "keywords": [
+                "contracts",
+                "decoupling",
+                "extended-wp",
+                "interfaces",
+                "interoperability",
+                "standards",
+                "traits"
+            ],
+            "support": {
+                "issues": "https://github.com/x-wp/helper-traits/issues",
+                "source": "https://github.com/x-wp/helper-traits/tree/v1.9.2"
+            },
+            "time": "2024-09-18T12:43:44+00:00"
         }
     ],
     "packages-dev": [

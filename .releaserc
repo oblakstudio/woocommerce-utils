@@ -1,0 +1,28 @@
+{
+  "branches": [
+    "master",
+    "1.x"
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "zip -qr '/tmp/release.zip' ./src README.md composer.json"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "/tmp/release.zip",
+            "name": "woocommerce-utils.${nextRelease.version}.zip",
+            "label": "WooCommerce Utils v${nextRelease.version}"
+          }
+        ]
+      }
+    ]
+  ]
+}

@@ -11,7 +11,8 @@
   ],
   "require": {
     "php": ">= 8.0",
-    "oblak/wp-polyfills": "^1.1"
+    "x-wp/helper-functions": "^1.9",
+    "x-wp/helper-traits": "^1.9"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.31",
