@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "57d4287a8f47a6819ae1dac68503849c",
+    "content-hash": "d39b519d6c210ce578dd84c2bcca642b",
     "packages": [
         {
             "name": "x-wp/helper-functions",
@@ -113,6 +113,112 @@
                 "source": "https://github.com/x-wp/helper-traits/tree/v1.9.2"
             },
             "time": "2024-09-18T12:43:44+00:00"
+        },
+        {
+            "name": "x-wp/wc-product-customizer",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/x-wp/wc-product-customizer.git",
+                "reference": "61ac69579bcc263e847df9f6265c1edcd5fe17c6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/x-wp/wc-product-customizer/zipball/61ac69579bcc263e847df9f6265c1edcd5fe17c6",
+                "reference": "61ac69579bcc263e847df9f6265c1edcd5fe17c6",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0",
+                "x-wp/helper-functions": "^1.4"
+            },
+            "require-dev": {
+                "oblak/wordpress-coding-standard": "^1",
+                "php-stubs/woocommerce-stubs": "^9.0",
+                "php-stubs/wordpress-stubs": "^6.5",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan": "^1.10",
+                "phpstan/phpstan-deprecation-rules": "^1.1",
+                "swissspidy/phpstan-no-private": "^0.2.0",
+                "szepeviktor/phpstan-wordpress": "^1.3"
+            },
+            "suggest": {
+                "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "XWC\\Product\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Sibin Grasic",
+                    "email": "sibin.grasic@oblak.studio"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/x-wp/wc-product-customizer/issues",
+                "source": "https://github.com/x-wp/wc-product-customizer/tree/v1.0.2"
+            },
+            "time": "2024-09-22T04:43:34+00:00"
+        },
+        {
+            "name": "x-wp/wc-template-customizer",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/x-wp/wc-template-customizer.git",
+                "reference": "b38df4993b8fbefe0af0f27f44be4bb853418465"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/x-wp/wc-template-customizer/zipball/b38df4993b8fbefe0af0f27f44be4bb853418465",
+                "reference": "b38df4993b8fbefe0af0f27f44be4bb853418465",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0",
+                "x-wp/helper-functions": "^1.4"
+            },
+            "require-dev": {
+                "oblak/wordpress-coding-standard": "^1",
+                "php-stubs/woocommerce-stubs": "^9.0",
+                "php-stubs/wordpress-stubs": "^6.5",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan": "^1.10",
+                "phpstan/phpstan-deprecation-rules": "^1.1",
+                "swissspidy/phpstan-no-private": "^0.2.0",
+                "szepeviktor/phpstan-wordpress": "^1.3"
+            },
+            "suggest": {
+                "automattic/jetpack-autoloader": "Allow for better interoperability with other plugins that use this package."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "XWC\\Template\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Sibin Grasic",
+                    "email": "sibin.grasic@oblak.studio"
+                }
+            ],
+            "support": {
+                "issues": "https://github.com/x-wp/wc-template-customizer/issues",
+                "source": "https://github.com/x-wp/wc-template-customizer/tree/v1.0.2"
+            },
+            "time": "2024-10-20T17:39:43+00:00"
         }
     ],
     "packages-dev": [

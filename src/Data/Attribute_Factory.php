@@ -8,15 +8,15 @@
 
 namespace Oblak\WooCommerce\Data;
 
-use Oblak\WP\Traits\Singleton;
 use WC_Data_Store;
 use WC_Product_Attribute;
+use XWP\Helper\Traits\Singleton_Ex;
 
 /**
  * Standardized methods for attribute taxonomy data.
  */
 class Attribute_Factory {
-    use Singleton;
+    use Singleton_Ex;
 
     /**
      * Get an Attribute Taxonomy object

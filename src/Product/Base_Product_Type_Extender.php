@@ -8,43 +8,117 @@
 
 namespace Oblak\WooCommerce\Product;
 
+use XWC\Product\Customizer_Base;
+
 /**
  * Enables easy extension of product types.
  *
  * @since 1.1.0
+ * @since 1.32.0 Switched to using the New Customizer Class.
+ *
+ * @deprecated 1.32.0 Use `\XWC\Product\Customizer_Base`
  */
-abstract class Base_Product_Type_Extender {
+class Base_Product_Type_Extender extends Customizer_Base {
     /**
      * Types to remove from the product type selector
      *
-     * @var string[]
-     */
+     * @var array<int,string>     */
     protected array $types_to_remove = array();
 
     /**
      * Options to remove from the options selector
      *
-     * @var string[]
+     * @var array<int,string>
      */
     protected array $options_to_remove = array();
 
     /**
-     * Class constructor
+     * Product types to remove
+     *
+     * @var array<int,string>
+     */
+    private static array $rm_types = array();
+
+    /**
+     * Product options to remove
+     *
+     * @var array<int,string>
+     */
+    private static array $rm_opts = array();
+
+    /**
+     * Constructor
+     *
+     * Adds the types and options to remove to the static arrays.
      */
     public function __construct() {
-        \add_filter( 'product_type_selector', array( $this, 'add_custom_product_types' ) );
-        \add_filter( 'product_type_options', array( $this, 'add_custom_product_options' ), 99, 1 );
-        \add_filter( 'woocommerce_product_class', array( $this, 'modify_product_classnames' ), 99, 2 );
-        \add_filter( 'woocommerce_product_data_tabs', array( $this, 'add_product_type_data_tabs' ), 999, 1 );
-        \add_filter( 'woocommerce_product_data_panels', array( $this, 'add_product_type_data_panels' ), 999 );
-        \add_action(
-            'woocommerce_admin_process_product_object',
-            array( $this, 'set_custom_options_status' ),
-            99,
-            1,
-        );
-        \add_action( 'admin_print_styles', array( $this, 'add_custom_product_css' ), 90 );
-        \add_action( 'admin_footer', array( $this, 'add_custom_product_types_js' ), 90, 1 );
+        self::$rm_types = $this->init_rm( self::$rm_types, $this->types_to_remove );
+        self::$rm_opts  = $this->init_rm( self::$rm_opts, $this->options_to_remove );
+
+        parent::__construct();
+    }
+
+    /**
+     * Initializes the array of items to remove
+     *
+     * @param  array<int,string> $summed Summed array of items to remove.
+     * @param  array<int,string> $to_rm  Array of items to remove.
+     * @return array<int,string>
+     */
+    private function init_rm( array $summed, array $to_rm ): array {
+        return \array_values( \array_unique( \array_merge( $summed, $to_rm ) ) );
+    }
+
+    /**
+     * Initializes the customizer framework
+     *
+     * Adds the legacy actions to the product data tabs.
+     *
+     * @return bool
+     */
+    protected function init(): bool {
+        if ( \is_admin() ) {
+			\add_action( 'woocommerce_product_write_panel_tabs', array( $this, 'add_panel_actions' ), 0, 0 );
+            \add_filter( 'product_type_selector', array( $this, 'remove_types' ), 9999 );
+			\add_filter( 'product_type_options', array( $this, 'remove_opts' ), 9999 );
+        }
+
+        return parent::init();
+    }
+
+    /**
+     * Adds the panel actions to the product data tabs.
+     */
+    public function add_panel_actions() {
+        $legacy = 'woocommerce_product_options';
+        $modern = 'xwc_product_options';
+
+        foreach ( \array_keys( static::$tabs ) as $key ) {
+            //phpcs:ignore WooCommerce.Commenting
+            \add_action( "{$modern}_{$key}", static fn() => \do_action( "{$legacy}_{$key}" ) );
+        }
+    }
+
+    /**
+     * Removes the product types from the selector
+     *
+     * @param array<string> $types Product types.
+     *
+     * @return array<string>
+     */
+    public function remove_types( array $types ): array {
+        return \xwp_array_diff_assoc( $types, ...self::$rm_types );
+    }
+
+    /**
+     * Removes the product options from the selector
+     *
+     * @param array $opts Product options.
+     *
+     * @return array
+     */
+    public function remove_opts( array $opts ): array {
+        return \xwp_array_diff_assoc( $opts, ...self::$rm_opts );
     }
 
     /**
@@ -60,6 +134,16 @@ abstract class Base_Product_Type_Extender {
      */
     protected function get_product_types(): array {
         return array();
+    }
+
+    /**
+     * Adds the custom product types from legacy method.
+     *
+     * @param  array $types Product types.
+     * @return array
+     */
+    public function custom_product_types( array $types ): array {
+        return \array_merge( $types, $this->get_product_types() );
     }
 
     /**
@@ -80,6 +164,16 @@ abstract class Base_Product_Type_Extender {
     }
 
     /**
+     * Adds the custom product options from legacy method.
+     *
+     * @param  array $opts Product options.
+     * @return array
+     */
+    public function custom_product_opts( array $opts ): array {
+        return \array_merge( $opts, $this->get_product_options() );
+    }
+
+    /**
      * Get the product data tabs array
      *
      * Product tab is an array of arrays with the following properties:
@@ -96,246 +190,18 @@ abstract class Base_Product_Type_Extender {
     }
 
     /**
-     * Checks if we're on the product edit page
+     * Adds the custom product tabs from legacy method.
      *
-     * @return bool
+     * @param  array $tabs Product tabs.
+     * @return array
      */
-    private function is_product_edit_page() {
-        global $pagenow, $typenow;
+    public function custom_product_tabs( array $tabs ): array {
+        foreach ( $this->get_product_tabs() as $tab ) {
+            $tab['prio'] ??= $tab['priority'] ?? 21;
 
-        return \in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) && 'product' === $typenow;
-    }
-
-    /**
-     * Adds custom product types to the product type selector.
-     *
-     * @param  array $types Product types.
-     * @return array        Modified product types.
-     */
-    public function add_custom_product_types( $types ) {
-        $new_types = array();
-        $to_set    = \array_filter(
-            $this->get_product_types(),
-            static fn( $slug ) => ! \in_array( $slug, \array_keys( $types ), true ) && 'variation' !== $slug,
-            ARRAY_FILTER_USE_KEY,
-        );
-
-        foreach ( $to_set as $slug => $type ) {
-            $new_types[ $slug ] = $type['name'];
-
-            if ( \get_term_by( 'slug', $slug, 'product_type' ) ) {
-                continue;
-            }
-
-            \wp_insert_term( $slug, 'product_type' );
+            $tabs[] = \xwp_array_diff_assoc( $tab, 'priority' );
         }
 
-        return \wp_array_diff_assoc( \array_merge( $types, $new_types ), $this->types_to_remove );
+        return $tabs;
     }
-
-    /**
-     * Modifies product classnames.
-     *
-     * @param  string $classname    Product classname.
-     * @param  string $product_type Product type.
-     * @return string               Modified classname.
-     */
-    public function modify_product_classnames( $classname, $product_type ) {
-        return $this->get_product_types()[ $product_type ]['class'] ?? $classname;
-    }
-
-    /**
-     * Adds the custom product options checkboxes
-     *
-     * @param  array $options Product options.
-     * @return array          Modified product options.
-     */
-    public function add_custom_product_options( $options ) {
-        $options = \array_merge(
-            $options,
-            \wp_array_flatmap(
-                static fn( $opt ) => array(
-                    $opt['key'] => array(
-                        'default'       => \wc_bool_to_string( $opt['default'] ?? false ),
-                        'description'   => $opt['description'] ?? '',
-                        'id'            => "_{$opt['key']}",
-                        'label'         => $opt['label'] ?? $opt['key'],
-                        'wrapper_class' => \implode(
-                            ' ',
-                            \array_map( static fn( $t ) => "show_if_{$t}", $opt['for'] ),
-                        ),
-                    ),
-                ),
-                \array_values( $this->get_product_options() ),
-            ),
-        );
-
-        return \xwp_array_diff_assoc( $options, ...$this->options_to_remove );
-    }
-
-    /**
-     * Add product type data tabs
-     *
-     * @param  array $tabs Product data tabs.
-     * @return array       Modified product data tabs.
-     */
-    public function add_product_type_data_tabs( $tabs ) {
-        return \array_merge(
-            $tabs,
-            \wp_array_flatmap(
-                static fn( $tab ) => array(
-					( $tab['key'] ?? $tab['id'] ) => array(
-                        'class'    => \array_map( static fn( $t ) => "show_if_{$t}", $tab['for'] ),
-                        'label'    => $tab['label'],
-                        'priority' => $tab['priority'] ?? 100,
-                        'target'   => "{$tab['id']}_product_data",
-					),
-                ),
-                $this->get_product_tabs(),
-            ),
-        );
-    }
-
-    /**
-     * Adds the custom product type data panels
-     */
-    public function add_product_type_data_panels() {
-        foreach ( \wp_list_pluck( $this->get_product_tabs(), 'id' ) as $tab ) {
-            \printf(
-                '<div id="%s_product_data" class="panel woocommerce_options_panel" style="display: none;">',
-                \esc_attr( $tab ),
-            );
-
-            //phpcs:ignore WooCommerce.Commenting
-            \do_action( "woocommerce_product_options_{$tab}" );
-
-            echo '</div>';
-        }
-    }
-
-    /**
-     * Sets the custom options status
-     *
-     * @param  \WC_Product $product Product object.
-     */
-    public function set_custom_options_status( $product ) {
-        foreach ( $this->get_product_options() as $slug => $option ) {
-
-            $status = \wc_bool_to_string( 'on' === \xwp_fetch_post_var( "_{$slug}", 'no' ) );
-
-            if ( ( $option['is_prop'] ?? false ) || \is_callable( array( $product, "set_{$slug}" ) ) ) {
-                $product->{"set_{$slug}"}( $status );
-            } else {
-                $product->update_meta_data( "_{$slug}", $status );
-            }
-        }
-
-        $product->save();
-    }
-
-    /**
-     * Adds custom css needed for the custom product tab icons to work
-     */
-    public function add_custom_product_css() {
-        $tabs = \array_filter(
-            $this->get_product_tabs(),
-            static fn( $tab ) => isset( $tab['icon'] ),
-        );
-
-        if ( 0 === \count( $tabs ) || ! $this->is_product_edit_page() ) {
-            return;
-        }
-
-        $css = '';
-        foreach ( $tabs as $tab ) {
-            $icon_font = \str_starts_with( $tab['icon'], 'woo' ) ? 'woocommerce' : 'Dashicons';
-            $icon_str  = \str_replace( 'woo:', '', $tab['icon'] );
-
-            $css .= \sprintf(
-                '#woocommerce-product-data ul.wc-tabs li.%1$s_options a::before { content: "%2$s"; font-family: %3$s, sans-serif; }%4$s',
-                \esc_attr( $tab['key'] ?? $tab['id'] ),
-                \esc_attr( $icon_str ),
-                \esc_attr( $icon_font ),
-                "\n",
-            );
-
-        }
-
-        \printf(
-            '<styl%1$s type="text/css">%2$s</styl%1$s>',
-            'e',
-            $css, //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        );
-	}
-
-    /**
-     * Adds custom javascript needed for the custom product types to work
-     */
-	public function add_custom_product_types_js() {
-		if ( ! $this->is_product_edit_page() || 0 === \count( $this->get_product_types() ) ) {
-			return;
-		}
-
-		$opt_groups = array();
-
-		$remap = static fn( array $arr, string $selector, string $action, string $type ) => \array_map(
-            static fn( string $target ) => array(
-                'class'  => "{$action}_if_{$type}",
-                'target' => \sprintf( $selector, $target ),
-            ),
-            $arr,
-        );
-
-		foreach ( \array_merge( $this->get_product_options(), $this->get_product_types() ) as $type => $data ) {
-			$opt_groups = \array_merge(
-                $opt_groups,
-                $remap( $data['show_groups'] ?? array(), '.options_group.%s', 'show', $type ),
-                $remap( $data['show_tabs'] ?? array(), '.%s_options', 'show', $type ),
-                $remap( $data['inherits'] ?? array(), '.show_if_%s', 'show', $type ),
-                $remap( $data['inherits'] ?? array(), '.hide_if_%s', 'hide', $type ),
-			);
-		}
-		$opt_groups = \array_values( \array_filter( $opt_groups ) );
-
-		$script = <<<'JS'
-            jQuery(($) => {
-                const toggleVisibility = ($show, $hide, isChecked = true) => {
-                    $show.toggle(isChecked);
-                    $hide.toggle(!isChecked);
-                };
-                const getElements = (action, option) => {
-                    return $(`.${action}_if_${option}`);
-                };
-
-                utilAdditionalTypes.forEach((optData) => {
-                    $(optData.target).addClass(optData.class);
-                });
-
-                utilAdditionalOpts.forEach((opt) => {
-                    const $checkbox = $(`input#_${opt}`);
-                    const $showElements = getElements('show', opt);
-                    const $hideElements = getElements('hide', 'opt');
-
-                    $checkbox.on('change', (e) => toggleVisibility($showElements, $hideElements, $(e.target).prop('checked')));
-
-                    toggleVisibility($showElements, $hideElements, $checkbox.prop('checked'));
-                });
-
-                $('select#product-type').change();
-            });
-        JS;
-
-		\printf(
-            <<<'HTML'
-                <script>
-                    var utilAdditionalTypes = %s;
-                    var utilAdditionalOpts = %s;
-                    %s
-                </script>
-            HTML,
-            \wp_json_encode( $opt_groups ),
-            \wp_json_encode( \array_keys( $this->get_product_options() ) ),
-            $script, //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		);
-	}
 }
